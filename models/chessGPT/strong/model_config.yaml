@@ -1,0 +1,9 @@
+nlayers: 10
+embed_dim: 512
+nhead: 8
+head_dim: 64
+ff_dim: 2048
+dropout: 0.05
+causal: True
+norm_first: False
+ghost: False

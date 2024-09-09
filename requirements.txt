@@ -1,0 +1,12 @@
+torch==2.3.1
+torchvision==0.18.1
+chess==1.10.0
+cairosvg==2.7.1
+matplotlib==3.9.0
+h5py==3.11.0
+pyyaml==6.0.1
+numpy==1.26.4
+requests==2.32.3
+tqdm==4.66.4
+beautifulsoup4==4.12.3
+cycling_utils @ git+https://github.com/StrongResearch/cycling_utils.git
