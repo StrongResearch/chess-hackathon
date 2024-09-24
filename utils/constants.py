@@ -8,4 +8,4 @@ PIECE_CHARS = "♔♕♖♗♘♙⭘♟♞♝♜♛♚"
 PGN_CHARS = " #+-./0123456789:=BKLNOQRabcdefghx{}*"
 
 # Path to stockfish binary used for engine
-STOCKFISH_PATH = "/root/chess-hackathon-3/utils/stockfish"
+STOCKFISH_PATH = "/root/chess-hackathon-4/utils/stockfish"

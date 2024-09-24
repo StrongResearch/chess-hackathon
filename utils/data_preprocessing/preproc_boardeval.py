@@ -10,7 +10,7 @@ from utils.data_utils import pgn_to_board_evaluations
 from utils.datasets import PGN_HDF_Dataset
 
 SOURCE_DIR = "/data"
-DEST_DIR = "/root/chess-hackathon-3/data/lc0_board_evals"
+DEST_DIR = "/root/chess-hackathon-4/data/lc0_board_evals"
 
 def worker_function(idx, depth_limit=20, time_limit=5*60):
     start = time.perf_counter()
