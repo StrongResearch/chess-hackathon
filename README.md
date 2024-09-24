@@ -27,11 +27,11 @@ pip install -r requirements.txt
 4. The model type subdirectory will contain two further subdirectories, one for each example model of this type. Decide which of the two example models you want to train.
 
 ### Step 3. Copy necessary training files to repository root
-Copy the following files from the **model type** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-3/models/chessVision` to `chess-hackathon-3`).
+Copy the following files from the **model type** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-4/models/chessVision` to `chess-hackathon-4`).
  - `<type>.isc`
  - `train_<type>.py`
 
- Copy the following files from the **example model** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-3/models/chessVision/conv` to `chess-hackathon-3`)
+ Copy the following files from the **example model** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-4/models/chessVision/conv` to `chess-hackathon-4`)
  - `model.py`
  - `model_config.yaml`
 
