@@ -1,6 +1,7 @@
 import io
 import torch
 import torch.nn as nn
+import numpy as np
 import chess.pgn
 from chess import Board
 import torch.nn.functional as F
