@@ -15,8 +15,8 @@ Clone this repo and install the requirements.
 
 ```
 cd ~
-git clone https://github.com/StrongResearch/chess-hackathon-3.git
-cd ~/chess-hackathon-3
+git clone https://github.com/StrongResearch/chess-hackathon-4.git
+cd ~/chess-hackathon-4
 pip install -r requirements.txt
 ```
 
