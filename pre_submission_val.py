@@ -4,7 +4,7 @@ import yaml
 import signal
 from contextlib import contextmanager
 from model import Model
-from utils.chess_gameplay import Agent, play_game
+from chess_gameplay import Agent, play_game
 
 TIME_LIMIT_SECONDS = 120
 

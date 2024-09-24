@@ -16,7 +16,7 @@ from io import BytesIO
 import math
 
 WHEREAMI = os.path.dirname(__file__)
-STOCKFISH_PATH = os.path.join(WHEREAMI, 'stockfish')
+STOCKFISH_PATH = os.path.join(WHEREAMI, 'utils', 'stockfish')
 
 def softmax_temp(x, temp=1):
     z = np.exp((x - x.max()) / temp)

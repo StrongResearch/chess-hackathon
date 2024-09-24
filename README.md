@@ -59,14 +59,15 @@ You may develop most any kind of model you like, but your submission must adhere
  - Your model **must** use or be compatible with the dependencies included in the `requirements.txt` file for this repo. You may install other additional dependencies for the purpose of **training** but for inference (e.g. game play / tournament) your model **must not** require any dependencies other than those included in the `requirements.txt` file.
 
 ### Submission specification
-Your submission must follow the following directory structure. Ensure you have moved your `model.py`, `model_config.yaml`, and `checkpoint.pt` files into a **separate sub/directory**. Then copy in `pre_submission_val.py` and run this script to test that your model will build and infer within the allowed time.
+Your submission must follow the following directory structure. Ensure you have moved your `model.py`, `model_config.yaml`, and `checkpoint.pt` files into a **separate sub/directory**. Then copy in `pre_submission_val.py` and `chess_gameplay.py` and run this script with `python pre_submission_val.py` to test that your model will build and infer within the allowed time. **Do not make any changes to the contents of `pre_submission_val.py` or `chess_gameplay.py`**.
 
 ```
 └─team-name
     ├─ model.py
     ├─ model_config.yaml
     ├─ checkpoint.pt
-    └─ pre_submission_val.py
+    ├─ pre_submission_val.py
+    └─ chess_gameplay.py
 ```
 
 #### Specification for model_config.yaml
