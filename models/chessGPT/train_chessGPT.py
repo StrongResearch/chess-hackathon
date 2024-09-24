@@ -31,7 +31,7 @@ timer.report("Completed imports")
 
 def get_args_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-config", help="model config path", type=Path, default="/root/chess-hackathon-3/model_config.yaml")
+    parser.add_argument("--model-config", help="model config path", type=Path, default="/root/chess-hackathon-4/model_config.yaml")
     parser.add_argument("--save-dir", help="save checkpoint path", type=Path, default=os.environ["OUTPUT_PATH"])
     parser.add_argument("--load-path", help="path to checkpoint.pt file to resume from", type=Path, default=None)
     parser.add_argument("--bs", help="batch size", type=int, default=4)
