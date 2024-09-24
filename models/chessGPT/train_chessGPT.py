@@ -93,10 +93,10 @@ def main(args, timer):
 
     checkpoint_path = None
     local_resume_path = os.path.join(args.save_dir, saver.symlink_name)
-    if os.path.exists(local_resume_path) and os.path.islink(local_resume_path):
+    if os.path.islink(local_resume_path):
         checkpoint_path = os.path.join(os.readlink(local_resume_path), "checkpoint.pt")
     elif args.load_path:
-        if os.path.exists(args.load_path) and os.path.isfile(args.load_path):
+        if os.path.isfile(args.load_path):
             checkpoint_path = args.load_path
     if checkpoint_path:
         if args.is_master:
