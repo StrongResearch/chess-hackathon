@@ -4,6 +4,7 @@ nhead: 8
 head_dim: 64
 ff_dim: 2048
 dropout: 0.1
+rope: True
 causal: True
 norm_first: False
 ghost: False
