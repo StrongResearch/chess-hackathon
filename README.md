@@ -45,6 +45,24 @@ Launch your experiment with the following.
 isc train <type>.isc
 ```
 
+### Step 6. Validate your model inference
+- Run `isc experiments` to obtain the output path for the experiment you launched.
+- Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see `completed`).
+- Navigate to the output path for your experiment and copy the `checkpoint.pt` from within the `/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon-4`).
+- In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon-4` and run `python pre_submission_val.py`.
+This will validate that your model is able to initialize correctly, load the checkpoint, and infer fast enough to play in the tournament, and is an important step **before launching burst**. Otherwise, you might develop a model and spend time training it only to discover that it is too big, and you will need to train a smaller model instead. 
+
+For more information about this see below under **Pre-submission model validation**.
+
+## Step 7. Launch your experiment to train with `compute_mode = "burst"`
+Once your model has successfully `completed` a run with `compute_mode = "cycle"` you will have confidence that it will run successfully on a dedicated cluster. Your next step is update your experiment launch file with `compute_mode = "burst"` and again run `isc train <type>.isc`.
+
+This time you will see a message directing you to Control Plane to launch your burst experiment. Visit the Experiments page on Control Plane and click "Launch Burst" next to your experiment.
+
+Click on the "View" button for your experiment in Control Plane to follow progress initializing your experiment to run on a dedicated cluster. Be patient, this can take a few minutes.
+
+Once your experiment reaches the state of `running`, visit the User Credentials page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/exports`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/exports` to your user directory in `/root` beforehand.
+
 ## Inference (game play)
 To understand how your model will be instantiated and called during gameplay, refer to the `gameplay.ipynb` notebook.
 
@@ -59,7 +77,7 @@ You may develop most any kind of model you like, but your submission must adhere
  - Your model **must** use or be compatible with the dependencies included in the `requirements.txt` file for this repo. You may install other additional dependencies for the purpose of **training** but for inference (e.g. game play / tournament) your model **must not** require any dependencies other than those included in the `requirements.txt` file.
 
 ### Submission specification
-Your submission must follow the following directory structure. Ensure you have moved your `model.py`, `model_config.yaml`, and `checkpoint.pt` files into a **separate sub/directory**. Then copy in `pre_submission_val.py` and `chess_gameplay.py` and run this script with `python pre_submission_val.py` to test that your model will build and infer within the allowed time. 
+Your submission must follow the following directory structure. Ensure you have moved your `model.py`, `model_config.yaml`, and `checkpoint.pt` files into a **separate sub/directory**. Then copy in `pre_submission_val.py` and `chess_gameplay.py` and run this script with `python pre_submission_val.py` to test that your model will build and infer within the allowed time. For more infro
 ```
 └─team-name
     ├─ model.py
