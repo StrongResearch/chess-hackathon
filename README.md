@@ -54,7 +54,7 @@ This will validate that your model is able to initialize correctly, load the che
 
 For more information about this see below under **Pre-submission model validation**.
 
-## Step 7. Launch your experiment to train with `compute_mode = "burst"`
+### Step 7. Launch your experiment to train with `compute_mode = "burst"`
 Once your model has successfully `completed` a run with `compute_mode = "cycle"` you will have confidence that it will run successfully on a dedicated cluster. Your next step is update your experiment launch file with `compute_mode = "burst"` and again run `isc train <type>.isc`.
 
 This time you will see a message directing you to Control Plane to launch your burst experiment. Visit the Experiments page on Control Plane and click "Launch Burst" next to your experiment.
