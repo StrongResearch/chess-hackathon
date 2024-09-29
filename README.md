@@ -46,7 +46,7 @@ isc train <type>.isc
 ```
 
 ### Step 6. Validate your model inference
-- Run `isc experiments` to obtain the output path for the experiment you launched.
+- In your terminal, run `isc experiments` to obtain the output path for the experiment you launched.
 - Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see `completed`).
 - Navigate to the output path for your experiment and copy the `checkpoint.pt` from within the `/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon-4`).
 - In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon-4` and run `python pre_submission_val.py`.
