@@ -61,7 +61,7 @@ This time you will see a message directing you to Control Plane to launch your b
 
 Click on the "View" button for your experiment in Control Plane to follow progress initializing your experiment to run on a dedicated cluster. Be patient, this can take a few minutes.
 
-Once your experiment reaches the state of `running`, visit the User Credentials page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/exports`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/exports` to your user directory in `/root` beforehand.
+Once your experiment reaches the state of `running`, visit the User Credentials page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
 
 ## Inference (game play)
 To understand how your model will be instantiated and called during gameplay, refer to the `gameplay.ipynb` notebook.
