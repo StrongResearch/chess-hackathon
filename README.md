@@ -36,7 +36,9 @@ Copy the following files from the **model type** subdirectory to the root direct
  - `model_config.yaml`
 
 ### Step 4. Update the experiment launch file
-Update the experiment launch files with your Project ID. The `<type>.isc` file is prepared with a suitable dataset already, but if you want to select another dataset (see below) you can also update the Dataset ID.
+Update the experiment launch file (the chessGPT.isc or chessVision.isc) you chose, with your Project ID.
+
+The `<type>.isc` file is prepared with a suitable dataset already, but if you want to select another dataset (see below) you can also update the Dataset ID.
 
 ### Step 5. Launch your experiment
 Launch your experiment with the following.
