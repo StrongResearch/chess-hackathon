@@ -79,7 +79,8 @@ compute_mode = "cycle"
 command = '''
 source ~/.chess/bin/activate &&
 cd ~/chess-hackathon-4/ &&
-torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK
+torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR
+--master_port=$MASTER_PORT --node_rank=$RANK
 train_chessVision.py --load-path /root/<path>/<to>/checkpoint.pt'''
 ```
 
