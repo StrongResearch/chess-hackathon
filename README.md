@@ -83,7 +83,7 @@ torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --
 train_chessVision.py --load-path /root/<path>/<to>/checkpoint.pt'''
 ```
 
-You can then launch your experiment with `isc train <type>.isc` to launch a new experiment which resumes training from that checkpoint.
+You can then launch a new experiment with `isc train <type>.isc` which will resume training from that checkpoint.
 
 **Note: when resuming from `comput_mode = "burst"` experiments, ensure you have copied the most recent checkpoint out of the `/root/exports` directory into another location in `/root` before resuming your experiment.**
 
