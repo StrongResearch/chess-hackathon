@@ -3,6 +3,6 @@ experiment_name = "chessGPT"
 gpu_type = "24GB VRAM GPU"
 gpus = 48
 output_path = "~/outputs/chessGPT"
-dataset_id = "9a921d78-e7bc-4cf4-9e4a-7a3bfe890852"
+dataset_id = "a6ebbed3-c0ec-49f9-8759-f17bb28d5376"
 compute_mode = "cycle"
 command = "source ~/.chess/bin/activate && cd ~/chess-hackathon-4/ && torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK train_chessGPT.py"
