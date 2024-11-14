@@ -63,6 +63,30 @@ Click on the "View" button for your experiment in Control Plane to follow progre
 
 Once your experiment reaches the state of `running`, visit the User Credentials page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
 
+### Step 8. Resume training your model from a previous checkpoint
+If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
+
+The training scripts included in this repo under `/chess-hackathon-4/models` implement an optional argument `--load-path`. Include this argument in your experiment launch file as follows, passing in the path to the most recent checkpoint from the stoppped experiment.
+
+```toml
+isc_project_id = "<project-id>"
+experiment_name = "vision"
+gpu_type = "24GB VRAM GPU"
+gpus = 48
+output_path = "~/outputs/vision"
+dataset_id = "96f6d30d-3dec-474b-880e-d2fa3ba3756e"
+compute_mode = "cycle"
+command = '''
+source ~/.chess/bin/activate &&
+cd ~/chess-hackathon-4/ &&
+torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK
+train_chessVision.py --load-path /root/<path>/<to>/checkpoint.pt'''
+```
+
+You can then launch your experiment with `isc train <type>.isc` to launch a new experiment which resumes training from that checkpoint.
+
+**Note: when resuming from `comput_mode = "burst"` experiments, ensure you have copied the most recent checkpoint out of the `/root/exports` directory into another location in `/root` before resuming your experiment.**
+
 ## Inference (game play)
 To understand how your model will be instantiated and called during gameplay, refer to the `gameplay.ipynb` notebook.
 
