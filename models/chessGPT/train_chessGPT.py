@@ -94,7 +94,7 @@ def main(args, timer):
     checkpoint_path = None
     local_resume_path = os.path.join(args.save_dir, saver.symlink_name)
     if os.path.islink(local_resume_path):
-        checkpoint = os.readlink(f"{local_resume_path}/checkpoint.pt")
+        checkpoint = os.path.join(os.readlink(local_resume_path), "checkpoint.pt")
         if os.path.isfile(checkpoint):
             checkpoint_path = checkpoint  
     elif args.load_path:
