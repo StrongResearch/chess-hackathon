@@ -18,10 +18,12 @@ echo "Found latest checkpoint: ${latest}. Last training log was:"
 
 tail "${OUT_FOLDER}/rank_0.txt" -n 1 # To help participants easily confirm it's the right checkpoint
 
-echo "Copying checkpoint.pt to ~/chess-hackathon-4 in 1 second (CTRL+C to cancel; will override if exists)..."
+RECOVER_FOLDER=/root/chess-hackathon-4/recover
+
+echo "Copying checkpoint.pt to ${RECOVER_FOLDER} in 1 second (CTRL+C to cancel; will override if exists)..."
 sleep 2 # Give a chance to cancel, e.g if the logs were wrong
 
-RECOVER_FOLDER=/root/chess-hackathon-4/recover
+
 mkdir -p "$RECOVER_FOLDER"
 
 cp "${OUT_FOLDER}/rank_0.txt" "/root/chess-hackathon-4/${latest}-rank_0.txt" || echo "Error copying logs?" # Copy logs too :)
