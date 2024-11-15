@@ -21,8 +21,11 @@ tail "${OUT_FOLDER}/rank_0.txt" -n 1 # To help participants easily confirm it's 
 echo "Copying checkpoint.pt to ~/chess-hackathon-4 in 1 second (CTRL+C to cancel; will override if exists)..."
 sleep 2 # Give a chance to cancel, e.g if the logs were wrong
 
+RECOVER_FOLDER=/root/chess-hackathon-4/recover
+mkdir -p "$RECOVER_FOLDER"
+
 cp "${OUT_FOLDER}/rank_0.txt" "/root/chess-hackathon-4/${latest}-rank_0.txt" || echo "Error copying logs?" # Copy logs too :)
-cp "${OUT_FOLDER}/${latest}/checkpoint.pt" /root/chess-hackathon-4/checkpoint.pt && echo "Success! Now, run: 'isc train' as before, to resume burst!" && exit 0
+cp "${OUT_FOLDER}/${latest}/checkpoint.pt" "${RECOVER_FOLDER}" && echo "Success! Now, run: 'isc train' as before, to resume burst!" && exit 0
 
 # If we're here, the copying broke :(
-echo "Error copying checkpoint from ${OUT_FOLDER}/${latest}/checkpoint.pt to /root/chess-hackathon-4/checkpoint.pt !" && exit 1
+echo "Error copying checkpoint from ${OUT_FOLDER}/${latest}/checkpoint.pt to ${RECOVER_FOLDER}" !" && exit 1
