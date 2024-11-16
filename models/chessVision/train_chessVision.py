@@ -46,7 +46,7 @@ def logish_transform(data):
     reflector = -1 * (data < 0).to(torch.int8)
     return reflector * torch.log(torch.abs(data) + 1)
 
-def spearman_rho(a, b):
+def spearmans_rho(a, b):
     '''Spearman's rank correlation coefficient'''
     assert len(a) == len(b), "ERROR: Vectors must be of equal length"
     n = len(a)
