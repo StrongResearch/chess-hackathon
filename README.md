@@ -139,7 +139,7 @@ Your model must satisfy the pre-submission validation check to gain admittance i
 with the following.
 
 ```
-python pre_submission_validation.py
+python pre_submission_val.py
 ```
 
 If successful, this test will return the following.
