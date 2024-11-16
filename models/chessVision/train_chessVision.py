@@ -46,13 +46,18 @@ def logish_transform(data):
     reflector = -1 * (data < 0).to(torch.int8)
     return reflector * torch.log(torch.abs(data) + 1)
 
-def spearmans_rho(seq_a, seq_b):
+def spearman_rho(a, b):
     '''Spearman's rank correlation coefficient'''
-    assert len(seq_a) == len(seq_b), "ERROR: Sortables must be equal length."
-    index = range(len(seq_a))
-    sorted_by_a = [t[0] for t in sorted(zip(index, seq_a, seq_b), key=lambda t: t[1])]
-    sorted_by_b = [t[0] for t in sorted(zip(index, seq_a, seq_b), key=lambda t: t[2])]
-    return 1 - 6 * sum([(sorted_by_a.index(i) - sorted_by_b.index(i))**2 for i in index]) / (len(seq_a) * (len(seq_a)**2 - 1))
+    assert len(a) == len(b), "ERROR: Vectors must be of equal length"
+    n = len(a)
+    a_ranks = [sorted(a).index(i) for i in a]
+    b_ranks = [sorted(b).index(j) for j in b]
+    a_ranks_mean = sum(a_ranks) / n
+    b_ranks_mean = sum(b_ranks) / n
+    rank_covariance = sum([(a_rank - a_ranks_mean) * (b_rank - b_ranks_mean) for a_rank, b_rank in zip(a_ranks, b_ranks)]) / n
+    a_ranks_sd = (sum([(a_rank - a_ranks_mean) ** 2 for a_rank in a_ranks]) / n) ** 0.5
+    b_ranks_sd = (sum([(b_rank - b_ranks_mean) ** 2 for b_rank in b_ranks]) / n) ** 0.5
+    return rank_covariance / (a_ranks_sd * b_ranks_sd)
 
 def main(args, timer):
     dist.init_process_group("nccl")  # Expects RANK set in environment variable
