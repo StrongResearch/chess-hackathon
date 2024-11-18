@@ -161,15 +161,14 @@ save_pgn_batch_to_hdf(pgns, hdf_count=0, dest_dir)
 
 ## -- Generating Dataset of Board Evaluations from HDF dataset -- ##
 
-def encode_board(board):
-    # String-encode the board.
+def encode_board(board, symmetric=True):
+    # IF SYMMETRIC:
     # If board.turn = 1 then it is now white's turn which means this is a potential move
-    # being contemplated by black, and therefore we reverse the char order to rotate the board
+    # being contemplated by black, and therefore we flip the board to black's perspective.
     # for black's perspective
     # If board.turn = 0 then it is now black's turn which means this is a potential move
-    # being contemplated by white, and therefore we leave the char order as white's perspective.
-    # Also reverse PIECE_CHARS indexing order if black's turn to reflect "my" and "opponent" pieces.
-    step = 1 - 2 * board.turn
+    # being contemplated by white, and therefore we leave the board the way it is.
+    step = 1 - 2 * board.turn if symmetric else 1
     unicode = board.unicode().replace(' ','').replace('\n','')[::step]
     return np.array([PIECE_CHARS[::step].index(c) for c in unicode], dtype=int).reshape(8,8)
 
