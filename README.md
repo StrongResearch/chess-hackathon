@@ -77,22 +77,15 @@ cp /root/exports/<experiment-id>/outputs/checkpoint.pt /root/chess-hackathon/che
 ### Step 8. Resume training your model from a previous checkpoint
 If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
 
-The training scripts included in this repo under `/chess-hackathon-4/models` implement an optional argument `--load-path`. Include this argument in your experiment launch file as follows, passing in the path to the most recent checkpoint from the stoppped experiment.
+The training scripts included in this repo under `/chess-hackathon/models` implement an optional argument `--load-path`. Include this argument in your experiment launch file as follows, passing in the path to the most recent checkpoint from the stoppped experiment.
 
 ```toml
-isc_project_id = "<project-id>"
-experiment_name = "vision"
-gpu_type = "24GB VRAM GPU"
-gpus = 48
-output_path = "~/outputs/vision"
-dataset_id = "96f6d30d-3dec-474b-880e-d2fa3ba3756e"
-compute_mode = "cycle"
 command = '''
-source ~/.chess/bin/activate &&
-cd ~/chess-hackathon-4/ &&
+source /root/.chess/bin/activate &&
+cd /root/chess-hackathon/ &&
 torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR
 --master_port=$MASTER_PORT --node_rank=$RANK
-train_chessVision.py --load-path /root/<path>/<to>/checkpoint.pt'''
+train_<type>.py --load-path /root/<path>/<to>/checkpoint.pt'''
 ```
 
 You can then launch a new experiment with `isc train <type>.isc` which will resume training from that checkpoint.
