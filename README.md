@@ -1,4 +1,4 @@
-# chess-hackathon-4
+# chess-hackathon
 
 ## Quick Start Guide
 Before attempting the steps in this guide, please ensure you have completed all onboarding steps from the **Getting Started** section of the [Strong Compute Developer Docs](https://strong-compute.gitbook.io/developer-docs). 
@@ -7,16 +7,16 @@ Before attempting the steps in this guide, please ensure you have completed all 
 Create and source a new python virtual environment.
 
 ```
-python3 -m virtualenv ~/.chess
-source ~/.chess/bin/activate
+python3 -m virtualenv /root/.chess
+source /root/.chess/bin/activate
 ```
 
 Clone this repo and install the requirements.
 
 ```
-cd ~
-git clone https://github.com/StrongResearch/chess-hackathon-4.git
-cd ~/chess-hackathon-4
+cd /root
+git clone https://github.com/StrongResearch/chess-hackathon.git
+cd /root/chess-hackathon
 pip install -r requirements.txt
 ```
 
@@ -27,18 +27,20 @@ pip install -r requirements.txt
 4. The model type subdirectory will contain two further subdirectories, one for each example model of this type. Decide which of the two example models you want to train.
 
 ### Step 3. Copy necessary training files to repository root
-Copy the following files from the **model type** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-4/models/chessVision` to `chess-hackathon-4`).
- - `<type>.isc`
- - `train_<type>.py`
+Copy the **experiment launch file** `<type>.isc` and **training script** `train_<type>.py` from your chosen **model type** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>` to `/root/chess-hackathon`).
+```
+cp /root/chess-hackathon/models/chessVision/<type>.isc /root/chess-hackathon/<type>.isc
+cp /root/chess-hackathon/models/chessVision/train_<type>.py /root/chess-hackathon/train_<type>.py
+```
 
- Copy the following files from the **example model** subdirectory to the root directory for this repo (i.e. copy from `chess-hackathon-4/models/chessVision/conv` to `chess-hackathon-4`)
- - `model.py`
- - `model_config.yaml`
+Copy the `model.py` and `model_config.yaml` files from your chosen **example model** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>/<example>` to `/root/chess-hackathon`)
+```
+cp /root/chess-hackathon/models/<type>/<example>/model.py /root/chess-hackathon/model.py
+cp /root/chess-hackathon/models/<type>/<example>/model_config.yaml /root/chess-hackathon/model_config.yaml
+```
 
 ### Step 4. Update the experiment launch file
-Update the experiment launch file (the `chessGPT.isc` or `chessVision.isc`) you chose, with your Project ID.
-
-The `<type>.isc` file is prepared with a suitable dataset already, but if you want to select another dataset (see below) you can also update the Dataset ID.
+Update your chosen **experiment launch file** with your **Project ID**. The provided experiment launch files are prepared with a suitable dataset already, but if you want to select another dataset (see below) you can also update the **User Dataset ID**.
 
 ### Step 5. Launch your experiment
 Launch your experiment with the following.
@@ -49,9 +51,12 @@ isc train <type>.isc
 
 ### Step 6. Validate your model inference
 - In your terminal, run `isc experiments` to obtain the output path for the experiment you launched.
-- Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see `completed`).
-- Navigate to the output path for your experiment and copy the `checkpoint.pt` from within the `/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon-4`).
-- In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon-4` and run `python pre_submission_val.py`.
+- Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see your experiment `completed`).
+- Navigate to the **output path** for your experiment and copy the `checkpoint.pt` from within the `/root/<output>/<path>/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon`).
+```
+cp /root/<output>/<path>/latest_pt/checkpoint.pt /root/chess-hackathon/checkpoint.pt
+```
+- In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon` and run `python pre_submission_val.py`.
 This will validate that your model is able to initialize correctly, load the checkpoint, and infer fast enough to play in the tournament, and is an important step **before launching burst**. Otherwise, you might develop a model and spend time training it only to discover that it is too big, and you will need to train a smaller model instead. 
 
 For more information about this see below under **Pre-submission model validation**.
@@ -59,11 +64,15 @@ For more information about this see below under **Pre-submission model validatio
 ### Step 7. Launch your experiment to train with `compute_mode = "burst"`
 Once your model has successfully `completed` a run with `compute_mode = "cycle"` you will have confidence that it will run successfully on a dedicated cluster. Your next step is update your experiment launch file with `compute_mode = "burst"` and again run `isc train <type>.isc`.
 
-This time you will see a message directing you to Control Plane to launch your burst experiment. Visit the Experiments page on Control Plane and click "Launch Burst" next to your experiment.
+This time you will see a message directing you to Control Plane to launch your burst experiment. Visit the Experiments page on Control Plane and click **"Launch Burst"** next to your experiment.
 
 Click on the "View" button for your experiment in Control Plane to follow progress initializing your experiment to run on a dedicated cluster. Be patient, this can take a few minutes.
 
 Once your experiment reaches the state of `running`, visit the User Credentials page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
+```
+cp /root/exports/<experiment-id>/outputs/rank_0.txt /root/chess-hackathon/rank_0.txt
+cp /root/exports/<experiment-id>/outputs/checkpoint.pt /root/chess-hackathon/checkpoint.pt
+```
 
 ### Step 8. Resume training your model from a previous checkpoint
 If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
@@ -164,7 +173,7 @@ A further two datasets have also been prepared which contain both of the above `
 1. `Chess Hackathon - PGNs - Combined`
 2. `Chess Hackathon - Board Evals - Combined`
 
-Please note the training scripts published in this repo will not work with these two combined datasets without adjustment. You will need to update the training scripts, or write your own, to work with the above combined datasets if you wish.
+Please note the training scripts published in this repo **will not work** with these two combined datasets without adjustment. You will need to update the training scripts, or write your own, to work with the above combined datasets if you wish.
 
-All code used to develop these datasets can be found in `chess-hackathon-4/utils/data_preprocessing`. The `Hackathon 3 - PGN - Grand Master Games` dataset was generated using `gm_preproc.ipynb` notebook. The `Hackathon 3 - PGN - Leela Chess Zero Training Test 60` dataset was generated using `lc0_preproc.ipynb` notebook. The `Hackathon 3 - EVAL - Grand Master Games` and `Hackathon 3 - EVAL - Leela Chess Zero Training Test 60` datasets were generated by running a distributed processing workload with `preproc_boardeval.py` launched with `preproc.isc`, and post-processed with `eval_preproc.ipynb`.
+All code used to develop these datasets can be found in `/root/chess-hackathon/utils/data_preprocessing`. The `Hackathon 3 - PGN - Grand Master Games` dataset was generated using `gm_preproc.ipynb` notebook. The `Hackathon 3 - PGN - Leela Chess Zero Training Test 60` dataset was generated using `lc0_preproc.ipynb` notebook. The `Hackathon 3 - EVAL - Grand Master Games` and `Hackathon 3 - EVAL - Leela Chess Zero Training Test 60` datasets were generated by running a distributed processing workload with `preproc_boardeval.py` launched with `preproc.isc`, and post-processed with `eval_preproc.ipynb`.
 win
