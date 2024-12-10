@@ -3,7 +3,11 @@
 ## Quick Start Guide
 Before attempting the steps in this guide, please ensure you have completed all onboarding steps from the **Getting Started** section of the [Strong Compute Developer Docs](https://strong-compute.gitbook.io/developer-docs). 
 
+### Step 0. Connect to ISC
+Open the ISC through the Remote Explorer extension you configured in the Quick Start.
+
 ### Step 1. Installation
+
 Create and source a new python virtual environment.
 
 ```
