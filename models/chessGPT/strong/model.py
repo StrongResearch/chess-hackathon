@@ -180,7 +180,8 @@ class Model(nn.Module):
         inputs = torch.tensor(encoded_pgn + encoded_move).unsqueeze(0)
         # forward through the model
         inputs = self.embedder(inputs) # (batch_size, seq_len, embed_dim)
-        inputs = self.pos_encoder(inputs) # (batch_size, seq_len, embed_dim)
+        if self.pos_encoder:
+            inputs = self.pos_encoder(inputs) # (batch_size, seq_len, embed_dim)
         inputs = self.encoder(inputs) # (batch, token, embed)
         logits = self.decoder(inputs) # (batch, token, vocab)
         logits = logits[0] # batch size of 1 for scoring
