@@ -4,7 +4,7 @@
 Before attempting the steps in this guide, please ensure you have completed all onboarding steps from the **Getting Started** section of the [Strong Compute Developer Docs](https://strong-compute.gitbook.io/developer-docs). 
 
 ### Step 0. Connect to ISC
-Open the ISC through the Remote Explorer extension you configured in the Quick Start.
+Using the VSCode Remote SSH extension that you configured in the Quick Start, connect to your ISC container. (You might have to start it on Control Plane first.)
 
 ### Step 1. Installation
 
