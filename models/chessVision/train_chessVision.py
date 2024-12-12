@@ -57,7 +57,7 @@ def spearmans_rho(a, b):
     rank_covariance = sum([(a_rank - a_ranks_mean) * (b_rank - b_ranks_mean) for a_rank, b_rank in zip(a_ranks, b_ranks)]) / n
     a_ranks_sd = (sum([(a_rank - a_ranks_mean) ** 2 for a_rank in a_ranks]) / n) ** 0.5
     b_ranks_sd = (sum([(b_rank - b_ranks_mean) ** 2 for b_rank in b_ranks]) / n) ** 0.5
-    return rank_covariance / (a_ranks_sd * b_ranks_sd)
+    return rank_covariance / (a_ranks_sd * b_ranks_sd + 1e-8)
 
 def main(args, timer):
     dist.init_process_group("nccl")  # Expects RANK set in environment variable
