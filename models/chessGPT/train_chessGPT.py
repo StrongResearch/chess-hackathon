@@ -164,7 +164,7 @@ def main(args, timer):
                     step = batch // args.grad_accum
                     
                     # learning rate warmup
-                    lr_factor = min((epoch + 1) * step / args.ws, 1)
+                    lr_factor = min((epoch * train_steps_per_epoch + step) / ws, 1)
                     for g in optimizer.param_groups:
                         g['lr'] = lr_factor * args.lr
                     
