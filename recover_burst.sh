@@ -18,7 +18,7 @@ echo "Found latest checkpoint: ${latest}. Last training log was:"
 
 tail "${OUT_FOLDER}/rank_0.txt" -n 1 # To help participants easily confirm it's the right checkpoint
 
-RECOVER_FOLDER=/root/chess-hackathon-4/recover/$experiment_id/
+RECOVER_FOLDER=/root/chess-hackathon/recover/$experiment_id/
 
 echo "Copying checkpoint.pt to ${RECOVER_FOLDER} in 1 second (CTRL+C to cancel; will override if exists)..."
 sleep 2 # Give a chance to cancel, e.g if the logs were wrong
@@ -26,7 +26,7 @@ sleep 2 # Give a chance to cancel, e.g if the logs were wrong
 
 mkdir -p "$RECOVER_FOLDER"
 
-cp "${OUT_FOLDER}/rank_0.txt" "/root/chess-hackathon-4/${latest}-rank_0.txt" || echo "Error copying logs?" # Copy logs too :)
+cp "${OUT_FOLDER}/rank_0.txt" "/root/chess-hackathon/${latest}-rank_0.txt" || echo "Error copying logs?" # Copy logs too :)
 cp "${OUT_FOLDER}/${latest}/checkpoint.pt" "${RECOVER_FOLDER}" && echo "Success! Now, run: 'isc train' as before, to resume burst!" && exit 0
 
 # If we're here, the copying broke :(
