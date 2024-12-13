@@ -33,16 +33,16 @@ pip install -r requirements.txt
 ### Step 3. Copy necessary training files to repository root
 Copy the **experiment launch file** `<type>.isc` and **training script** `train_<type>.py` from your chosen **model type** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>` to `/root/chess-hackathon`).
 ```
-cd /root/chess-hackathon # or wherever you cloned it
-cp models/CHOSEN_MODEL_TYPE/MODEL_ISC_FILE.isc .
-cp models/CHOSEN_MODEL_TYPE/MODEL_TRAIN_SCRIPT.py .
+cd /root/chess-hackathon
+cp models/chess<type>/chess<type>.isc .
+cp models/chess<type>/train_chess<type>.py .
 ```
 
 Copy the `model.py` and `model_config.yaml` files from your chosen **example model** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>/<example>` to `/root/chess-hackathon`)
 ```
 cd /root/chess-hackathon # or wherever you cloned it
-cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model.py .
-cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model_config.yaml .
+cp models/chess<type>/<example>/model.py .
+cp models/chess<type>/<example>/model_config.yaml .
 ```
 
 ### Step 4. Update the experiment launch file
@@ -76,8 +76,9 @@ Click on the "View" button for your experiment in Control Plane to follow progre
 
 Once your experiment reaches the state of `running`, visit the **Workstations** page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
 ```
-cp /root/exports/<experiment-id>/outputs/rank_0.txt /root/chess-hackathon/rank_0.txt
-cp /root/exports/<experiment-id>/outputs/checkpoint.pt /root/chess-hackathon/checkpoint.pt
+cd /root/chess-hackathon
+cp /root/exports/<experiment-id>/outputs/rank_0.txt .
+cp /root/exports/<experiment-id>/outputs/checkpoint.pt .
 ```
 
 ### Step 8. Resume training your model from a previous checkpoint
