@@ -33,14 +33,16 @@ pip install -r requirements.txt
 ### Step 3. Copy necessary training files to repository root
 Copy the **experiment launch file** `<type>.isc` and **training script** `train_<type>.py` from your chosen **model type** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>` to `/root/chess-hackathon`).
 ```
-cp /root/chess-hackathon/models/chessVision/<type>.isc /root/chess-hackathon/<type>.isc
-cp /root/chess-hackathon/models/chessVision/train_<type>.py /root/chess-hackathon/train_<type>.py
+cd /root/chess-hackathon # or wherever you cloned it
+cp models/CHOSEN_MODEL_TYPE/MODEL_ISC_FILE.isc .
+cp models/CHOSEN_MODEL_TYPE/MODEL_TRAIN_SCRIPT.py .
 ```
 
 Copy the `model.py` and `model_config.yaml` files from your chosen **example model** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>/<example>` to `/root/chess-hackathon`)
 ```
-cp /root/chess-hackathon/models/<type>/<example>/model.py /root/chess-hackathon/model.py
-cp /root/chess-hackathon/models/<type>/<example>/model_config.yaml /root/chess-hackathon/model_config.yaml
+cd /root/chess-hackathon # or wherever you cloned it
+cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model.py .
+cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model_config.yaml .
 ```
 
 ### Step 4. Update the experiment launch file
