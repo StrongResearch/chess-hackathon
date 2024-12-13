@@ -5,4 +5,8 @@ gpus = 48
 output_path = "/root/outputs/chessGPT"
 dataset_id = "a6ebbed3-c0ec-49f9-8759-f17bb28d5376"
 compute_mode = "cycle"
-command = "source /root/.chess/bin/activate && cd /root/chess-hackathon/ && torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK train_chessGPT.py"
+command = '''
+source /root/.chess/bin/activate && 
+cd /root/chess-hackathon/ && 
+torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK 
+train_chessGPT.py'''
