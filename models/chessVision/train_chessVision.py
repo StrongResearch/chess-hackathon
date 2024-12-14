@@ -244,7 +244,7 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                             metrics["test"].reduce()
                             rpt = metrics["test"].local
                             avg_loss = rpt["accum_loss"] / rpt["examples_seen"]
-                            rpt_rank_corr = 100 * rpt["rank_corr"] / rpt["examples_seen"]
+                            rpt_rank_corr = 100 * rpt["rank_corr"] / (test_batches_per_epoch * args.world_size)
                             report = f"Epoch [{epoch}] Evaluation, Avg Loss [{avg_loss:,.3f}], Rank Corr. [{rpt_rank_corr:,.3f}%]"
                             timer.report(report)
                         
