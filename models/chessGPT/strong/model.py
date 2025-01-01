@@ -14,10 +14,9 @@ def softmax(x, dim=-1, temp=1, ghost=None):
 
 def multihead_cross_attention(Q, K, V, rope_encoder=None, mask=None, ghost=None, device='cpu'):
     '''
-    Accepts input of Q, K, V each with shape (batch_size, nhead, seq_len, head_dim),
-    or more generally with shape (..., seq_len, head_dim).
+    Accepts input of Q, K, V each with shape (batch_size, seq_len, nhead, head_dim).
     If passed, "mask" is assumed to be a tensor of floats of shape (seq_len, seq_len) 
-    Returns attention tensor A of shape (..., seq_len, head_dim).
+    Returns attention tensor A of shape (batch_size, seq_len, nhead, head_dim).
     '''
     head_dim = Q.shape[-1]
 
@@ -25,13 +24,13 @@ def multihead_cross_attention(Q, K, V, rope_encoder=None, mask=None, ghost=None,
         Q = rope_encoder(Q)
         K = rope_encoder(K)
 
-    QKT = torch.einsum('...Qe,...Ke->...QK', Q, K) / math.sqrt(head_dim)
+    QKT = torch.einsum('bQhe,bKhe->bhQK', Q, K) / math.sqrt(head_dim)
 
     if isinstance(mask, torch.Tensor):
         QKT += mask
 
     S = softmax(QKT, dim=-1, ghost=ghost)
-    A = torch.einsum('...SV,...Ve->...Se', S, V)
+    A = torch.einsum('bhSV,bVhe->bShe', S, V)
     return A
 
 class MultiHeadSelfAttention(nn.Module):
@@ -67,10 +66,10 @@ class MultiHeadSelfAttention(nn.Module):
             mask = nn.Transformer.generate_square_subsequent_mask(seq_len, dtype=torch.float, device=self.device)
 
         QKV = self.Wqkv(inputs)
-        QKVh = QKV.reshape(batch_size, seq_len, 3, self.nhead, self.head_dim).transpose(1, 3)
-        Q, K, V = [t.squeeze(2) for t in QKVh.split(1, 2)] # squeezing out the projection dimension only
+        QKVh = QKV.reshape(batch_size, seq_len, 3, self.nhead, self.head_dim)
+        Q, K, V = [t.squeeze(2) for t in QKVh.split(1, 2)]
         A = multihead_cross_attention(Q, K, V, self.rope_encoder, mask, self.ghost, self.device)
-        A = A.transpose(1, 2).reshape(batch_size, seq_len, -1)
+        A = A.reshape(batch_size, seq_len, -1)
         outputs = self.Wo(A)
         return outputs
 
