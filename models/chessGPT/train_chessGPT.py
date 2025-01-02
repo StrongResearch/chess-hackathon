@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 from pathlib import Path
 import argparse
 import os
@@ -89,6 +90,9 @@ def main(args, timer):
     loss_fn = nn.CrossEntropyLoss(reduction='none')
     optimizer = Lamb(model.parameters(), lr=args.lr, weight_decay=args.wd)
     metrics = {"train": MetricsTracker(), "test": MetricsTracker()}
+
+    if args.is_master:
+        writer = SummaryWriter(log_dir=os.path.join(args.save_dir, "tb"))
 
     checkpoint_path = None
     local_resume_path = os.path.join(args.save_dir, saver.symlink_name)
@@ -180,6 +184,12 @@ Uncertainty: [{rpt_uncertainty:,.3f}], Tokens: {rpt['gen_tokens']:,.0f}"""
                     timer.report(report)
                     metrics["train"].reset_local()
 
+                    if args.is_master:
+                        total_progress = train_dataloader.sampler.progress + epoch * train_batches_per_epoch
+                        writer.add_scalar("train/learn_rate", next_lr, total_progress)
+                        writer.add_scalar("train/loss", avg_loss, total_progress)
+                        writer.add_scalar("train/batch_rank_corr", rpt_rank_corr, total_progress)
+
                 # Saving
                 if (is_save_batch or is_last_batch) and args.is_master:
                     # Save checkpoint
@@ -250,6 +260,10 @@ Top1 [{rpt_top1:,.3f}%], Top5 [{rpt_top5:,.3f}%], \
 Uncertainty: [{rpt_uncertainty:,.3f}]"""
                             timer.report(report)
                             metrics["test"].reset_local()
+
+                            if args.is_master:
+                                writer.add_scalar("test/loss", avg_loss, epoch)
+                                writer.add_scalar("test/batch_rank_corr", rpt_rank_corr, epoch)
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
