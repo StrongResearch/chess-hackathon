@@ -244,7 +244,7 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                             rpt_rank_corr = 100 * rpt["rank_corr"] / (test_batches_per_epoch * args.world_size)
                             report = f"Epoch [{epoch}] Evaluation, Avg Loss [{avg_loss:,.3f}], Rank Corr. [{rpt_rank_corr:,.3f}%]"
                             timer.report(report)
-                            metrics["train"].reset_local()
+                            metrics["test"].reset_local()
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
