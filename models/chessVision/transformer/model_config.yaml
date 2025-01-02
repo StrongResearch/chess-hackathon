@@ -5,6 +5,6 @@ head_dim: 64
 ff_dim: 2048
 dropout: 0.1
 rope: True
-causal: True
+causal: False
 norm_first: False
 ghost: False
