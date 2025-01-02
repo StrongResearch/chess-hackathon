@@ -38,7 +38,7 @@ def get_args_parser():
     parser.add_argument("--wd", help="weight decay", type=float, default=0.01)
     parser.add_argument("--ws", help="learning rate warm up steps", type=int, default=1000)
     parser.add_argument("--grad-accum", help="gradient accumulation steps", type=int, default=6)
-    parser.add_argument("--save-steps", help="saving interval steps", type=int, default=100)
+    parser.add_argument("--save-steps", help="saving interval steps", type=int, default=50)
     return parser
 
 def logish_transform(data):
@@ -79,10 +79,9 @@ def main(args, timer):
 
     data_path = "/data"
     dataset = EVAL_HDF_Dataset(data_path)
-    timer.report(f"Intitialized dataset with {len(dataset):,} Board Evaluations.")
-
     random_generator = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = random_split(dataset, [0.8, 0.2], generator=random_generator)
+    timer.report(f"Intitialized datasets with {len(train_dataset):,} training and {len(test_dataset):,} test board evaluations.")
 
     train_sampler = InterruptableDistributedSampler(train_dataset)
     test_sampler = InterruptableDistributedSampler(test_dataset)
@@ -154,8 +153,7 @@ def main(args, timer):
                 boards, scores = boards.to(args.device_id), scores.to(args.device_id)
 
                 logits = model(boards)
-                loss = loss_fn(logits, scores)
-                loss = loss / args.grad_accum
+                loss = loss_fn(logits, scores) / args.grad_accum
 
                 loss.backward()
                 train_dataloader.sampler.advance(len(scores))
@@ -165,7 +163,7 @@ def main(args, timer):
 
                 metrics["train"].update({
                     "examples_seen": len(scores),
-                    "accum_loss": loss.item() * args.grad_accum, 
+                    "accum_loss": loss.item() * args.grad_accum, # undo loss scale
                     "rank_corr": rank_corr
                 })
 
@@ -234,22 +232,23 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
 
                         metrics["test"].update({
                             "examples_seen": len(scores),
-                            "accum_loss": loss.item() * args.grad_accum, 
+                            "accum_loss": loss.item(), 
                             "rank_corr": rank_corr
                         })
                         
                         # Reporting
                         if is_last_batch:
-
                             metrics["test"].reduce()
                             rpt = metrics["test"].local
                             avg_loss = rpt["accum_loss"] / rpt["examples_seen"]
                             rpt_rank_corr = 100 * rpt["rank_corr"] / (test_batches_per_epoch * args.world_size)
                             report = f"Epoch [{epoch}] Evaluation, Avg Loss [{avg_loss:,.3f}], Rank Corr. [{rpt_rank_corr:,.3f}%]"
                             timer.report(report)
+                            metrics["train"].reset_local()
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
+                            timer.report(f"Saving after test batch [{batch} / {test_batches_per_epoch}]")
                             # Save checkpoint
                             atomic_torch_save(
                                 {
