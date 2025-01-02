@@ -38,7 +38,7 @@ def get_args_parser():
     parser.add_argument("--wd", help="weight decay", type=float, default=0.01)
     parser.add_argument("--ws", help="learning rate warm up steps", type=int, default=1000)
     parser.add_argument("--grad-accum", help="gradient accumulation steps", type=int, default=6)
-    parser.add_argument("--save-steps", help="saving interval steps", type=int, default=50)
+    parser.add_argument("--save-steps", help="saving interval steps", type=int, default=100)
     return parser
 
 def logish_transform(data):
