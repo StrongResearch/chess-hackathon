@@ -253,6 +253,7 @@ Uncertainty: [{rpt_uncertainty:,.3f}]"""
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
+                            timer.report(f"Saving after test batch [{batch} / {test_batches_per_epoch}]")
                             # Save checkpoint
                             atomic_torch_save(
                                 {
