@@ -62,10 +62,9 @@ def main(args, timer):
 
     data_path = "/data"
     dataset = PGN_HDF_Dataset(data_path)
-    timer.report(f"Intitialized dataset with {len(dataset):,} PGNs.")
-
     random_generator = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = random_split(dataset, [0.8, 0.2], generator=random_generator)
+    timer.report(f"Intitialized datasets with {len(train_dataset):,} training and {len(test_dataset):,} test PGNs.")
 
     train_sampler = InterruptableDistributedSampler(train_dataset)
     test_sampler = InterruptableDistributedSampler(test_dataset)
@@ -152,7 +151,7 @@ def main(args, timer):
 
                 metrics["train"].update({
                     "gen_tokens": count_real,
-                    "accum_loss": loss.item() * args.grad_accum, 
+                    "accum_loss": loss.item() * args.grad_accum, # undo loss scale
                     "top1_correct": top1_correct.item(), 
                     "top5_correct": top5_correct.item(),
                     "uncertainty": total_prediction_entropy.item()
@@ -250,6 +249,7 @@ Epoch [{epoch}] Evaluation, Avg Loss [{avg_loss:,.3f}], \
 Top1 [{rpt_top1:,.3f}%], Top5 [{rpt_top5:,.3f}%], \
 Uncertainty: [{rpt_uncertainty:,.3f}]"""
                             timer.report(report)
+                            metrics["test"].reset_local()
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
