@@ -168,8 +168,9 @@ def main(args, timer):
                     
                     # learning rate warmup
                     lr_factor = min((epoch * train_steps_per_epoch + step) / args.ws, 1)
+                    next_lr = lr_factor * args.lr
                     for g in optimizer.param_groups:
-                        g['lr'] = lr_factor * args.lr
+                        g['lr'] = next_lr
                     
                     metrics["train"].reduce()
                     rpt = metrics["train"].local
