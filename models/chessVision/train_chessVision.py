@@ -75,7 +75,7 @@ def main(args, timer):
         print(f"TrainConfig: {args}")
     timer.report("Setup for distributed training")
 
-    saver = AtomicDirectory(args.save_dir)
+    saver = AtomicDirectory(output_directory=args.save_dir, is_master=args.is_master)
     timer.report("Validated checkpoint path")
 
     data_path = "/data"
