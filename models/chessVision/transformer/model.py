@@ -199,6 +199,8 @@ class RotaryPositionalEmbeddings(nn.Module):
     This class implements Rotary Positional Embeddings (RoPE)
     proposed in https://arxiv.org/abs/2104.09864.
 
+    Adapted from: https://pytorch.org/torchtune/stable/_modules/torchtune/modules/position_embeddings.html#RotaryPositionalEmbeddings
+
     This implementation caches the embeddings for each position upto
     ``max_seq_len`` at init.
 
