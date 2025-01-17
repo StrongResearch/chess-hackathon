@@ -1,299 +1,179 @@
----
-description: '[Adam to update]'
----
+# chess-hackathon
 
-# Lachlan Bot
+## Quick Start Guide
+Before attempting the steps in this guide, please ensure you have completed all onboarding steps from the **Getting Started** section of the [Strong Compute Developer Docs](https://strong-compute.gitbook.io/developer-docs). 
 
-## Strong Compute App Testing Documentation <a href="#strong-compute-app-testing-documentation" id="strong-compute-app-testing-documentation"></a>
+### Step 0. Connect to ISC
+Using the VSCode Remote SSH extension that you configured in the Quick Start, connect to your ISC container. (You might have to start it on Control Plane first.)
 
-### Table of Contents <a href="#table-of-contents" id="table-of-contents"></a>
+### Step 1. Installation
 
-1. [Introduction](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#introduction)
-2. [Environment Setup](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#environment-setup)
-3. [Workflow Steps](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#workflow-steps)
-4. [Error Handling](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#error-handling)
-5. [Reporting](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#reporting)
-6. [Testing Strategy](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#testing-strategy)
-7. [Test Cases](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#test-cases)
-8. [Test Plans](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#test-plans)
-9. [Bug Reports](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#bug-reports)
-10. [Code Walkthrough](https://app.docuwriter.ai/s/g/share/14b17ebf-3b15-46cf-b2a7-b35ccefc9798?signature=e1992c9b1d1f18c041992fa45a7688da02fccbd83397e5c194da00fa26381ddb#code-walkthrough)
-
-***
-
-### Introduction <a href="#introduction" id="introduction"></a>
-
-This repository is designed to automate the testing of the Strong Compute application. It performs a series of actions such as setting up VPNs, generating RSA keys, user authentication, and more. The main script executed is `lachlan`, which carries out these steps in a sequence to ensure the application is functioning as expected.
-
-***
-
-### Environment Setup <a href="#environment-setup" id="environment-setup"></a>
-
-#### Dependencies <a href="#dependencies" id="dependencies"></a>
-
-* `argparse`
-* `yaml`
-* `time`
-* `os`
-* `signal`
-* `subprocess`
-* `discord_webhook`
-* `components` (presumably another module in the same repository)
-
-#### Command-line Arguments <a href="#command-line-arguments" id="command-line-arguments"></a>
-
-| Argument            | Type | Choices        | Default | Description                                  |
-| ------------------- | ---- | -------------- | ------- | -------------------------------------------- |
-| `--env`             | str  | `prod`, `stag` | N/A     | Environment to test                          |
-| `--name`            | str  | N/A            | N/A     | Name of the person testing                   |
-| `--max-retries`     | int  | N/A            | 5       | Number of times to retry in case of failure  |
-| `--step-time-limit` | int  | N/A            | 500     | Seconds allowed for each step before timeout |
-
-Example:
+Create and source a new python virtual environment.
 
 ```
-python script.py --env prod --name tester --max-retries 3 --step-time-limit 600
+python3 -m virtualenv /root/.chess
+source /root/.chess/bin/activate
 ```
 
-***
-
-### Workflow Steps <a href="#workflow-steps" id="workflow-steps"></a>
-
-The main function `lachlan` performs several steps to test various aspects of the Strong Compute application. Each step is designed to be executed within a specified time limit to avoid hanging processes.
-
-#### Steps Overview <a href="#steps-overview" id="steps-overview"></a>
-
-1. **Loading Auth Configuration**: Loads the `auth.yaml` file for authentication details.
-2. **Deactivating VPN**: Ensures any existing VPN connections are deactivated.
-3. **Generating Artefacts Directory**: Creates a directory to store artefacts.
-4. **VPN Login and Activation**: Generates VPN login details and activates the VPN.
-5. **Generating RSA Key Pair**: Creates a new RSA key pair for SSH authentication.
-6. **Generating User Auth Details**: Generates new user login details.
-7. **Opening Control Plane**: Opens the control plane in a browser.
-8. **Registering Users**: Registers two new users on the control plane.
-9. **Adding SSH Keys**: Adds the public SSH keys for the new users.
-10. **Retrieving User Org ID**: Retrieves the organization ID for a user.
-11. **Changing Org Name**: Changes the organization name.
-12. **Inviting Users**: User1 invites User2 to their organization.
-13. **Accepting Invitations**: User2 accepts the invitation.
-14. **Updating Email and Password**: User1 updates their email and password.
-15. **Signing Back into Control Plane**: User1 signs back into the control plane.
-16. **Updating Username**: User1 updates their username.
-17. **Generating and Starting Containers**: Generates and starts containers for both users.
-18. **Creating New Project**: Creates a new project.
-19. **Setting Spending Limits**: Sets daily and monthly spending limits for the organization.
-20. **Confirming Billing Limit Messages**: Confirms the billing limit error messages.
-21. **SSH into Workstations**: SSH into user workstations.
-22. **Running isc ping**: Runs ISC ping to verify connectivity.
-23. **Cloning ISC Demos Repo**: Clones the ISC Demos repository.
-24. **Generating venv Install Bash Script**: Generates a virtual environment installation script.
-
-***
-
-### Error Handling <a href="#error-handling" id="error-handling"></a>
-
-#### Custom Exception <a href="#custom-exception" id="custom-exception"></a>
-
-* **TimeoutException**: Raised when a block of code exceeds the specified time limit.
-
-#### Panic Function <a href="#panic-function" id="panic-function"></a>
-
-* **panic\_if(trigger, message)**: Raises an exception if the trigger condition is met and appends the error message to a global error list.
-
-#### Check for Errors <a href="#check-for-errors" id="check-for-errors"></a>
-
-* **CFE(result)**: Checks for errors in the result and triggers panic if any errors are detected.
-
-***
-
-### Reporting <a href="#reporting" id="reporting"></a>
-
-#### Discord Webhook <a href="#discord-webhook" id="discord-webhook"></a>
-
-* **lachlanbot\_report(auth, message)**: Sends a report message to Lachlanbot via Discord webhook.
-
-Example:
+Clone this repo and install the requirements.
 
 ```
-lachlanbot_report(auth, "Test completed successfully.")
+cd /root
+git clone https://github.com/StrongResearch/chess-hackathon.git
+cd /root/chess-hackathon
+pip install -r requirements.txt
 ```
 
-***
+### Step 2. Choose a model
+1. Nagivate to the **models** subdirectory of this repository.
+2. Decide whether you want to train a **chessGPT** or **chessVision** model.
+3. Navigate to the appropriate model type subdirectory for your chosen model type.
+4. The model type subdirectory will contain two further subdirectories, one for each example model of this type. Decide which of the two example models you want to train.
 
-### Testing Strategy <a href="#testing-strategy" id="testing-strategy"></a>
-
-The primary testing strategy involves executing a sequence of predefined steps that interact with various components of the Strong Compute application. Each step is designed to simulate real-world usage scenarios to ensure the application behaves as expected.
-
-#### Key Points: <a href="#key-points" id="key-points"></a>
-
-* **Automated Testing**: Automates complex sequences of actions to avoid human error.
-* **Timeout Mechanisms**: Ensures the testing process does not hang on any single step.
-* **Error Logging**: Captures and logs errors to facilitate debugging.
-
-***
-
-### Test Cases <a href="#test-cases" id="test-cases"></a>
-
-#### Example Test Cases <a href="#example-test-cases" id="example-test-cases"></a>
-
-1. **Test VPN Activation**:
-   * **Description**: Verify that the VPN can be activated and deactivated.
-   * **Steps**:
-     1. Deactivate existing VPN.
-     2. Generate new VPN login details.
-     3. Activate VPN.
-   * **Expected Result**: VPN should be activated without errors.
-2. **Test User Registration**:
-   * **Description**: Register two new users and verify their SSH key addition.
-   * **Steps**:
-     1. Generate new user login details.
-     2. Register users on the control plane.
-     3. Add SSH keys for the users.
-   * **Expected Result**: Users should be registered and their SSH keys added without errors.
-3. **Test Spending Limits**:
-   * **Description**: Set and verify organization spending limits.
-   * **Steps**:
-     1. Set daily and monthly spending limits to zero.
-     2. Verify error message is displayed.
-     3. Erase spending limits.
-     4. Verify error message is gone.
-   * **Expected Result**: Error messages related to spending limits should behave as expected.
-
-***
-
-### Test Plans <a href="#test-plans" id="test-plans"></a>
-
-#### Test Plan Overview <a href="#test-plan-overview" id="test-plan-overview"></a>
-
-1. **Setup**:
-   * Load authentication configurations.
-   * Ensure VPN is deactivated.
-   * Create artefacts directory.
-2. **User and VPN Setup**:
-   * Generate VPN login for production.
-   * Activate VPN.
-   * Generate RSA keys.
-   * Generate user authentication details.
-3. **Control Plane Interaction**:
-   * Register users.
-   * Add SSH keys.
-   * Update user details (email, password, username).
-4. **Project and Spending Limits**:
-   * Create a new project.
-   * Set and verify spending limits.
-5. **Workstation Interaction**:
-   * SSH into workstations.
-   * Run ISC ping.
-   * Clone ISC Demos repository.
-   * Generate virtual environment installation script.
-
-#### Execution and Validation <a href="#execution-and-validation" id="execution-and-validation"></a>
-
-Each step in the test plan is executed sequentially, and the results are validated against expected outcomes. Any deviations are logged and reported.
-
-***
-
-### Bug Reports <a href="#bug-reports" id="bug-reports"></a>
-
-#### Bug Report Template <a href="#bug-report-template" id="bug-report-template"></a>
-
-| Bug ID | Title                        | Description                                     | Steps to Reproduce            | Expected Result                          | Actual Result               | Status |
-| ------ | ---------------------------- | ----------------------------------------------- | ----------------------------- | ---------------------------------------- | --------------------------- | ------ |
-| 001    | VPN Activation Failure       | VPN fails to activate after generating login    | Run VPN activation steps      | VPN should activate                      | VPN activation fails        | Open   |
-| 002    | User Registration Error      | Error while registering new users               | Run user registration steps   | Users should be registered               | Registration fails          | Open   |
-| 003    | Spending Limit Message Error | Incorrect billing limit error message displayed | Set and erase spending limits | Error messages should behave as expected | Incorrect message displayed | Open   |
-
-***
-
-### Code Walkthrough <a href="#code-walkthrough" id="code-walkthrough"></a>
-
-#### `get_args_parser` <a href="#codeget-args-parsercode" id="codeget-args-parsercode"></a>
-
-Creates an argument parser for the command-line interface.
-
+### Step 3. Copy necessary training files to repository root
+Copy the **experiment launch file** `<type>.isc` and **training script** `train_<type>.py` from your chosen **model type** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>` to `/root/chess-hackathon`).
 ```
-def get_args_parser(add_help=True):
-    parser = argparse.ArgumentParser(description="Strong Compute App Testing", add_help=add_help)
-    parser.add_argument("--env", required=True, type=str, choices=["prod", "stag"], help="environment to test")
-    parser.add_argument("--name", required=True, type=str, help="name of person testing")
-    parser.add_argument("--max-retries", type=int, default=5, help="number of times to re-try in event of failure")
-    parser.add_argument("--step-time-limit", type=int, default=500, help="default seconds allowed for each step before presumed failure")
-    return parser
+cd /root/chess-hackathon
+cp models/CHOSEN_MODEL_TYPE/MODEL_ISC_FILE.isc .
+cp models/CHOSEN_MODEL_TYPE/MODEL_TRAIN_SCRIPT.py .
 ```
 
-#### `lachlanbot_report` <a href="#codelachlanbot-reportcode" id="codelachlanbot-reportcode"></a>
-
-Sends a report message to Lachlanbot via Discord webhook.
-
+Copy the `model.py` and `model_config.yaml` files from your chosen **example model** subdirectory to the root directory for this repo (i.e. copy from `/root/chess-hackathon/models/<type>/<example>` to `/root/chess-hackathon`)
 ```
-def lachlanbot_report(auth, message):
-    webhook = DiscordWebhook(url=auth["whurl"], content=message)
-    response = webhook.execute()
+cd /root/chess-hackathon # or wherever you cloned it
+cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model.py .
+cp models/CHOSEN_MODEL_TYPE/NAME_OF_MODEL/model_config.yaml .
 ```
 
-#### `time_limit` <a href="#codetime-limitcode" id="codetime-limitcode"></a>
+### Step 4. Update the experiment launch file
+Update your chosen **experiment launch file** with your **Project ID**. The provided experiment launch files are prepared with a suitable dataset already, but if you want to select another dataset (see below) you can also update the **User Dataset ID**.
 
-Enforces a time limit on a block of code.
-
-```
-@contextmanager
-def time_limit(seconds):
-    def signal_handler(signum, frame):
-        global ERRORS
-        message = "ERROR: Timed out!"
-        ERRORS += [message]
-        raise TimeoutException(message)
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(seconds)
-    try:
-        yield
-    finally:
-        signal.alarm(0)
-```
-
-#### `panic_if` <a href="#codepanic-ifcode" id="codepanic-ifcode"></a>
-
-Panics and raises an exception if the trigger condition is met.
+### Step 5. Launch your experiment
+Launch your experiment with the following.
 
 ```
-def panic_if(trigger, message):
-    global ERRORS
-    if trigger:
-        ERRORS += [message]
-        print(message)
-        raise Exception(message)
+isc train <type>.isc
 ```
 
-#### `CFE` <a href="#codecfecode" id="codecfecode"></a>
-
-Checks for error in the result and panics if any error is found.
-
+### Step 6. Validate your model inference
+- In your terminal, run `isc experiments` to obtain the output path for the experiment you launched.
+- Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see your experiment `completed`).
+- Navigate to the **output path** for your experiment and copy the `checkpoint.pt` from within the `/root/<output>/<path>/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon`).
 ```
-def CFE(result):
-    if isinstance(result, str):
-        panic_if(result.startswith("ERROR"), result)
-    return result
+cp /root/<output>/<path>/latest_pt/checkpoint.pt /root/chess-hackathon/checkpoint.pt
 ```
+- In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon` and run `python pre_submission_val.py`.
+This will validate that your model is able to initialize correctly, load the checkpoint, and infer fast enough to play in the tournament, and is an important step **before launching burst**. Otherwise, you might develop a model and spend time training it only to discover that it is too big, and you will need to train a smaller model instead. 
 
-#### `lachlan` <a href="#codelachlancode" id="codelachlancode"></a>
+For more information about this see below under **Pre-submission model validation**.
 
-Main function to execute the Lachlan test workflow.
+### Step 7. Launch your experiment to train with `compute_mode = "burst"`
+Once your model has successfully `completed` a run with `compute_mode = "cycle"` you will have confidence that it will run successfully on a dedicated cluster. Your next step is update your experiment launch file with `compute_mode = "burst"` and again run `isc train <type>.isc`.
 
+This time you will see a message directing you to Control Plane to launch your burst experiment. Visit the Experiments page on Control Plane and click **"Launch Burst"** next to your experiment.
+
+Click on the "View" button for your experiment in Control Plane to follow progress initializing your experiment to run on a dedicated cluster. Be patient, this can take a few minutes.
+
+Once your experiment reaches the state of `running`, visit the **Workstations** page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
 ```
-def lachlan(args, attempt):
-    report_prefix = f"{args.env.upper()}[{attempt}]"
-    got_up_to = None
-    global ERRORS
-    ERRORS = []
-
-    try:
-        # Various steps as described above
-        ...
-    except Exception as e:
-        ERRORS.append(str(e))
-        print(f"Encountered an error: {str(e)}")
+cd /root/chess-hackathon
+cp /root/exports/<experiment-id>/outputs/rank_0.txt .
+cp /root/exports/<experiment-id>/outputs/checkpoint.pt .
 ```
 
-***
+### Step 8. Resume training your model from a previous checkpoint
+If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
 
-This documentation provides a comprehensive overview of the Strong Compute App testing script, its functionality, and the steps involved in executing the tests. Use this as a guide to understand the script, modify it, or troubleshoot any issues encountered during its execution.
+The training scripts included in this repo under `/chess-hackathon/models` implement an optional argument `--load-path`. Include this argument in your experiment launch file as follows, passing in the path to the most recent checkpoint from the stoppped experiment.
+
+```toml
+command = '''
+source /root/.chess/bin/activate &&
+cd /root/chess-hackathon/ &&
+torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR
+--master_port=$MASTER_PORT --node_rank=$RANK
+train_<type>.py --load-path /root/<path>/<to>/checkpoint.pt'''
+```
+
+You can then launch a new experiment with `isc train <type>.isc` which will resume training from that checkpoint.
+
+**Note: when resuming from `comput_mode = "burst"` experiments, ensure you have copied the most recent checkpoint out of the `/root/exports` directory into another location in `/root` before resuming your experiment.**
+
+## Inference (game play)
+To understand how your model will be instantiated and called during gameplay, refer to the `gameplay.ipynb` notebook.
+
+## Important Rules & Submission Spec
+### Important rules
+You may develop most any kind of model you like, but your submission must adhere to the following rules. 
+ - Your submission must conform to the specification (below),
+ - Your model must pass the pre-submission validation check (below) to be admitted into the tournament, 
+ - Your model must be trained **entirely from scratch** using the provided compute resources. 
+ - You **may not** use pretrained models (this includes no transfer learning, fine-tuning, or adaptation modules).
+ - You **may not** hard-code any moves (e.g. no opening books).
+ - Your model **must** use or be compatible with the dependencies included in the `requirements.txt` file for this repo. You may install other additional dependencies for the purpose of **training** but for inference (e.g. game play / tournament) your model **must not** require any dependencies other than those included in the `requirements.txt` file.
+
+### Submission specification
+Your submission must follow the following directory structure. Ensure you have moved your `model.py`, `model_config.yaml`, and `checkpoint.pt` files into a **separate sub/directory**. Then copy in `pre_submission_val.py` and `chess_gameplay.py` and run this script with `python pre_submission_val.py` to test that your model will build and infer within the allowed time. For more infro
+```
+└─team-name
+    ├─ model.py
+    ├─ model_config.yaml
+    ├─ checkpoint.pt
+    ├─ pre_submission_val.py
+    └─ chess_gameplay.py
+```
+**Do not make any changes to the contents of `pre_submission_val.py` or `chess_gameplay.py`**.
+
+#### Specification for model_config.yaml
+ - The `model_config.yaml` file must conform to standard yaml syntax.
+ - The `model_config.yaml` file must contain all necessary arguments for instantiating your model. See below for demonstration of how the `model_config.yaml` is expected to be used during the tournament.
+
+#### Specification for model.py
+ - The `model.py` file must contain a class description of your model, which must be a PyTorch module called `Model`.
+ - The `Model` class **must be self-contained**. All code necessary to instantiate your model should be included in the `model.py` file and dependencies installed with `requirements.txt`. Your `model.py` file **must not** import from any ancillary files in your project directory.
+ - The model must not move any weights to the GPU upon initialization, it will be expected to run **entirely on the CPU** during the tournament.
+ - The model must implement a `score` method. 
+ - The `score` method must accept as input the following two positional arguments:
+  1. A PGN string representing the current game up to the most recent move, and
+  2. A string representing a potential next move.
+ - The `score` method must return a `float` value which represents a score for the potential move given the PGN, where higher positive scores always indicate preference for selecting that move.
+ - The model **must not** require GPU access to execute the `score` method.
+
+#### Specification for checkpoint.pt
+ - The `checkpoint.pt` file must be able to be loaded with the `torch.load` function.
+ - Your model state dictionary must be able to be obtained from the loaded checkpoint object by calling `checkpoint[“model”]`.
+
+#### Pre-submission model validation
+Your model must satisfy the pre-submission validation check to gain admittance into the tournament. You can run the pre-submission validation check 
+with the following.
+
+```
+python pre_submission_val.py
+```
+
+If successful, this test will return the following.
+
+```
+Outputs pass validation tests.
+Model passes validation test.
+```
+
+If any errors are reported, your model has **failed the test** and must be amended in order to be accepted into the tournament.
+
+## Know your datasets
+There are four datasets that have been published for this hackathon which can be found on the **Datasets** page of **Control Plane** under **Public Datasets**.
+1. `Chess Hackathon - PGNs - Grand Master Games` (ID: `3bd77ed0-cda1-4274-8b5b-7582fabb9754`)
+2. `Chess Hackathon - PGNs - Leela Chess Zero Training Run 60` (ID: `a6ebbed3-c0ec-49f9-8759-f17bb28d5376`)
+3. `Chess Hackathon - Board Evals - Grand Master Games` (ID: `96f6d30d-3dec-474b-880e-d2fa3ba3756e`)
+4. `Chess Hackathon - Board Evals - Leela Chess Zero Training Run 60` (ID: `9714cc3f-7383-43de-bb06-1e23ba2887ac`)
+
+The `PGN` datasets are suitable for `chessGPT` model training. The `EVAL` datasets are suitable for `chessVision` model training. Choose a dataset that is suitable for your chosen model and note the Dataset ID.
+
+A further two datasets have also been prepared which contain both of the above `PGN` and both of the above `EVAL` datasets respectively. Those datasets are named as follows.
+1. `Chess Hackathon - PGNs - Combined`
+2. `Chess Hackathon - Board Evals - Combined`
+
+Please note the training scripts published in this repo **will not work** with these two combined datasets without adjustment. You will need to update the training scripts, or write your own, to work with the above combined datasets if you wish.
+
+All code used to develop these datasets can be found in `/root/chess-hackathon/utils/data_preprocessing`. The `Hackathon 3 - PGN - Grand Master Games` dataset was generated using `gm_preproc.ipynb` notebook. The `Hackathon 3 - PGN - Leela Chess Zero Training Test 60` dataset was generated using `lc0_preproc.ipynb` notebook. The `Hackathon 3 - EVAL - Grand Master Games` and `Hackathon 3 - EVAL - Leela Chess Zero Training Test 60` datasets were generated by running a distributed processing workload with `preproc_boardeval.py` launched with `preproc.isc`, and post-processed with `eval_preproc.ipynb`.
+win

@@ -1,2 +1,0 @@
-# Compute Manager Change Log
-
