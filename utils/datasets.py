@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 from itertools import accumulate
-from h5py import File as h5pyFile=
+from h5py import File as h5pyFile
 from chess import Board
 
 class PGN_HDF_Dataset(Dataset):
