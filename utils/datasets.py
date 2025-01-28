@@ -80,7 +80,7 @@ class EVAL_HDF_Dataset_2(Dataset):
         # conteplated by white. Therefore we leave the board the way it is.
         step = 1 - 2 * board.turn if self.symmetric_board else 1
         unicode = board.unicode().replace(' ','').replace('\n','')[::step]
-        return torch.tensor([self.PIECE_CHARS[::step].index(c) for c in unicode], dtype=torch.uint8).reshape(8,8)
+        return torch.tensor([self.PIECE_CHARS[::step].index(c) for c in unicode], dtype=torch.int).reshape(8,8)
 
     def __len__(self):
         return self.len
@@ -102,7 +102,7 @@ class EVAL_HDF_Dataset_2(Dataset):
         if self.symmetric_board:
             score *= -1
         if self.extras:
-            count = torch.tensor(count, dtype=torch.unit16)
+            count = torch.tensor(count, dtype=torch.int)
             return board, score, fen, pgn_set, san, count
         else:
             return board, score
