@@ -185,7 +185,7 @@ def main(args, timer):
                     metrics["train"].reduce()
                     rpt = metrics["train"].local
                     avg_loss = rpt["accum_loss"] / rpt["examples_seen"]
-                    rpt_rank_corr = 100 * rpt["rank_corr"] / (args.grad_accum * args.world_size)
+                    rpt_rank_corr = 100 * rpt["rank_corr"] / ((batch % args.grad_accum + 1) * args.world_size)
                     report = f"""\
 Epoch [{epoch:,}] Step [{step:,} / {train_steps_per_epoch:,}] Batch [{batch:,} / {train_batches_per_epoch:,}] Lr: [{lr_factor * args.lr:,.3}], \
 Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt['examples_seen']:,.0f}"""
