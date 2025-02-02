@@ -104,7 +104,7 @@ def main(args, timer):
     model = DDP(model, device_ids=[args.device_id])
     timer.report("Prepared model for distributed training")
 
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.MSELoss(reduction="sum")
     optimizer = Lamb(model.parameters(), lr=args.lr, weight_decay=args.wd)
     metrics = {"train": MetricsTracker(), "test": MetricsTracker()}
 
