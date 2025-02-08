@@ -192,7 +192,7 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                     metrics["train"].reset_local()
 
                     if args.is_master:
-                        total_progress = train_dataloader.sampler.progress + epoch * train_batches_per_epoch
+                        total_progress = batch + epoch * train_batches_per_epoch
                         writer.add_scalar("train/learn_rate", next_lr, total_progress)
                         writer.add_scalar("train/loss", avg_loss, total_progress)
                         writer.add_scalar("train/batch_rank_corr", rpt_rank_corr, total_progress)
