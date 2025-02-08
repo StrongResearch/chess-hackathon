@@ -44,8 +44,7 @@ def get_args_parser():
 
 def logish_transform(data):
     '''Zero-symmetric log-transformation.'''
-    reflector = -1 * (data < 0).to(torch.int8)
-    return reflector * torch.log(torch.abs(data) + 1)
+    return torch.sign(data) * torch.log1p(torch.abs(data))
 
 def spearmans_rho(a, b):
     '''Spearman's rank correlation coefficient'''
