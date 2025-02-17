@@ -1,6 +1,5 @@
 isc_project_id = "<project-id>"
 experiment_name = "vision"
-gpu_type = "24GB VRAM GPU"
 gpus = 16
 output_path = "/root/outputs/chessVision"
 dataset_id = "96f6d30d-3dec-474b-880e-d2fa3ba3756e"
