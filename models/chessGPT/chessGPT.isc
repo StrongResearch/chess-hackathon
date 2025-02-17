@@ -1,6 +1,5 @@
 isc_project_id = "<project-id>"
 experiment_name = "chessGPT"
-gpu_type = "24GB VRAM GPU"
 gpus = 16
 output_path = "/root/outputs/chessGPT"
 dataset_id = "a6ebbed3-c0ec-49f9-8759-f17bb28d5376"
