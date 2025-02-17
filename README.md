@@ -8,6 +8,11 @@ Using the VSCode Remote SSH extension that you configured in the Quick Start, co
 
 ### Step 1. Installation
 
+Install python, git, and nano
+```
+apt update && apt install -y python3-dev python3-pip python3-virtualenv git nano
+```
+
 Create and source a new python virtual environment.
 
 ```
