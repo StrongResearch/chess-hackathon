@@ -58,7 +58,7 @@ class EVAL_HDF_Dataset(Dataset):
         score = torch.tensor(score)     
         return board, score
 
-class EVAL_HDF_Dataset_2(Dataset):
+class RandomGames_EVAL_HDF_Dataset(Dataset):
     def __init__(self, source_dir, symmetric_board=True, extras=False):
         super().__init__()
         self.source_dir = source_dir
