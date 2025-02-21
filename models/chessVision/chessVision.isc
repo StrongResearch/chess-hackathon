@@ -1,7 +1,7 @@
 isc_project_id = "<project-id>"
 experiment_name = "vision"
 gpus = 16
-dataset_id = "96f6d30d-3dec-474b-880e-d2fa3ba3756e"
+dataset_id_list = ["96f6d30d-3dec-474b-880e-d2fa3ba3756e"]
 compute_mode = "cycle"
 command = '''
 source /root/.chess/bin/activate && 
