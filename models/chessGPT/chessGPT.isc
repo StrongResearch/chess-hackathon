@@ -7,4 +7,4 @@ command = '''
 source /root/.chess/bin/activate && 
 cd /root/chess-hackathon/ && 
 torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR --master_port=$MASTER_PORT --node_rank=$RANK 
-train_chessGPT.py'''
+train_chessGPT.py --dataset-id a6ebbed3-c0ec-49f9-8759-f17bb28d5376'''
