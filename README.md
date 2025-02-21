@@ -89,7 +89,7 @@ Once your experiment reaches the state of `running`, retrieve your training chec
 ### Step 8. Resume training your model from a previous checkpoint
 If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
 
-To do this, edit the experiment launch file by including an additional argument `input_artifact_id_list = [ "previous-experiment-id" ]` where `"previous-experiment-id"` is the experiment ID for the experiment that was `strong_failed` or **Stopped**.
+To do this, edit the experiment launch file by including an additional argument `input_artifact_id_list = [ "checkpoint-artifact-id" ]` where `"checkpoint-artifact-id"` is the checkpoint artifact ID for the experiment that was `strong_failed` or **Stopped**.
 
 You can then launch a new experiment with `isc train <type>.isc` which will resume training from that previous experiment.
 
