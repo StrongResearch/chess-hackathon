@@ -41,6 +41,8 @@ def get_args_parser():
     parser.add_argument("--ws", help="learning rate warm up steps", type=int, default=1000)
     parser.add_argument("--grad-accum", help="gradient accumulation steps", type=int, default=10)
     parser.add_argument("--save-steps", help="saving interval steps", type=int, default=50)
+    parser.add_argument("--dataset-id", help="Dataset ID for the dataset", type=str, required=True)
+
     return parser
 
 def main(args, timer):
@@ -61,7 +63,7 @@ def main(args, timer):
     saver = AtomicDirectory(output_directory=args.save_dir, is_master=args.is_master)
     timer.report("Validated checkpoint path")
 
-    data_path = "/data"
+    data_path = f"/data/{args.dataset_id}"
     dataset = PGN_HDF_Dataset(data_path)
     random_generator = torch.Generator().manual_seed(42)
     train_dataset, test_dataset = random_split(dataset, [0.8, 0.2], generator=random_generator)
