@@ -63,12 +63,17 @@ isc train <type>.isc
 ### Step 6. Validate your model inference
 - In your terminal, run `isc experiments` to obtain the output path for the experiment you launched.
 - Wait for your experiment to reach the status `completed` (re-run `isc experiments` until you see your experiment `completed`).
-- Navigate to the **output path** for your experiment and copy the `checkpoint.pt` from within the `/root/<output>/<path>/latest_pt` subdirectory into the home directory for this repo (i.e. `/root/chess-hackathon`).
+- Visit the Experiments page on Control Plane, find your experiment, click "Outputs" and for your checkpoint artifact, click "Sync to Workstation".
+- In your Container, navigate to `/shared/artifacts/<experiment-id>/checkpoints`.
+- In this subdirectory run `ls -la` and note the checkpoint path (`CHKXX`) pointed to by the `latest_pt` symlink.
+- Navigate into this checkpoint subdirectory and copy the `checkpoint.pt` file to the home directory for this repo (i.e. `/root/chess-hackathon`).
 ```
-cp /root/<output>/<path>/latest_pt/checkpoint.pt /root/chess-hackathon/checkpoint.pt
+cp /shared/artifacts/<experiment-id>/<CHKXX>/checkpoint.pt /root/chess-hackathon/checkpoint.pt
 ```
 - In your terminal, navigate to the home directory for this repo with `cd /root/chess-hackathon` and run `python pre_submission_val.py`.
-This will validate that your model is able to initialize correctly, load the checkpoint, and infer fast enough to play in the tournament, and is an important step **before launching burst**. Otherwise, you might develop a model and spend time training it only to discover that it is too big, and you will need to train a smaller model instead. 
+This will validate that your model is able to initialize correctly, load the checkpoint, and infer fast enough to play in the tournament, and is an important step **before launching burst**.
+
+Otherwise, you might develop a model and spend time training it only to discover that it is too big, and you will need to train a smaller model instead. 
 
 For more information about this see below under **Pre-submission model validation**.
 
@@ -79,30 +84,14 @@ This time you will see a message directing you to Control Plane to launch your b
 
 Click on the "View" button for your experiment in Control Plane to follow progress initializing your experiment to run on a dedicated cluster. Be patient, this can take a few minutes.
 
-Once your experiment reaches the state of `running`, visit the **Workstations** page in Control Plane and click **Stop** on your container, then click **Start** on your container again. When your container is started again, you will find artefacts from your experiment training on its dedicated cluster sycning to a directory in `/root/exports/<experiment-id>/outputs`. Interacting with this directory is slow because it is a mounted bucket - again please be patient. To track performance metrics logging to `rank_0.txt` or access checkpoints, copy the files you need from `/root/exports/<experiment-id>/outputs` to another subdirectory in `/root` beforehand.
-```
-cd /root/chess-hackathon
-cp /root/exports/<experiment-id>/outputs/rank_0.txt .
-cp /root/exports/<experiment-id>/outputs/checkpoint.pt .
-```
+Once your experiment reaches the state of `running`, retrieve your training checkpoints in the same way as above.
 
 ### Step 8. Resume training your model from a previous checkpoint
 If your experiment stops with status `strong_fail`, or if you **Stop** your experiment via the CLI or Control Plane, then you may be able to **resume** training your experiment from its most recent checkpoint.
 
-The training scripts included in this repo under `/chess-hackathon/models` implement an optional argument `--load-path`. Include this argument in your experiment launch file as follows, passing in the path to the most recent checkpoint from the stoppped experiment.
+To do this, edit the experiment launch file by including an additional argument `input_artifact_id_list = [ "previous-experiment-id" ]` where `"previous-experiment-id"` is the experiment ID for the experiment that was `strong_failed` or **Stopped**.
 
-```toml
-command = '''
-source /root/.chess/bin/activate &&
-cd /root/chess-hackathon/ &&
-torchrun --nnodes=$NNODES --nproc-per-node=$N_PROC --master_addr=$MASTER_ADDR
---master_port=$MASTER_PORT --node_rank=$RANK
-train_<type>.py --load-path /root/<path>/<to>/checkpoint.pt'''
-```
-
-You can then launch a new experiment with `isc train <type>.isc` which will resume training from that checkpoint.
-
-**Note: when resuming from `comput_mode = "burst"` experiments, ensure you have copied the most recent checkpoint out of the `/root/exports` directory into another location in `/root` before resuming your experiment.**
+You can then launch a new experiment with `isc train <type>.isc` which will resume training from that previous experiment.
 
 ## Inference (game play)
 To understand how your model will be instantiated and called during gameplay, refer to the `gameplay.ipynb` notebook.
