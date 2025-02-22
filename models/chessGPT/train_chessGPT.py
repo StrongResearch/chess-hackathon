@@ -191,7 +191,7 @@ Uncertainty: [{rpt_uncertainty:,.3f}], Tokens: {rpt['gen_tokens']:,.0f}"""
                         total_progress = batch + epoch * train_batches_per_epoch
                         writer.add_scalar("train/learn_rate", next_lr, total_progress)
                         writer.add_scalar("train/loss", avg_loss, total_progress)
-                        writer.add_scalar("train/batch_rank_corr", rpt_rank_corr, total_progress)
+                        writer.add_scalar("train/uncertainty", rpt_uncertainty, total_progress)
 
                 # Saving
                 if (is_save_batch or is_last_batch) and args.is_master:
@@ -266,7 +266,7 @@ Uncertainty: [{rpt_uncertainty:,.3f}]"""
 
                             if args.is_master:
                                 writer.add_scalar("test/loss", avg_loss, epoch)
-                                writer.add_scalar("test/batch_rank_corr", rpt_rank_corr, epoch)
+                                writer.add_scalar("test/uncertainty", rpt_uncertainty, epoch)
                         
                         # Saving
                         if (is_save_batch or is_last_batch) and args.is_master:
