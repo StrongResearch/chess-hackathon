@@ -33,8 +33,6 @@ timer.report("Completed imports")
 def get_args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-config", help="model config path", type=Path, default="/root/chess-hackathon/model_config.yaml")
-    parser.add_argument("--save-dir", help="save checkpoint path", type=Path, default=os.getenv("CHECKPOINT_ARTIFACT_PATH"))
-    parser.add_argument("--tb-dir", help="save tensorboard logs", type=Path, default=os.environ.get("LOSSY_ARTIFACT_PATH"))
     parser.add_argument("--load-path", help="path to checkpoint.pt file to resume from", type=Path, default="/root/chess-hackathon/recover/checkpoint.pt")
     parser.add_argument("--bs", help="batch size", type=int, default=4)
     parser.add_argument("--lr", help="learning rate", type=float, default=0.001)
@@ -89,27 +87,31 @@ def main(args, timer):
 
     loss_fn = nn.CrossEntropyLoss(reduction='none')
     optimizer = Lamb(model.parameters(), lr=args.lr, weight_decay=args.wd)
-    metrics = {"train": MetricsTracker(), "test": MetricsTracker()}
+    metrics = {
+        "train": MetricsTracker(), 
+        "test": MetricsTracker(), 
+        "best_top1_accu": float("-inf")
+    }
 
     if args.is_master:
-        writer = SummaryWriter(log_dir=os.path.join(args.tb_dir, "tb"))
+        writer = SummaryWriter(log_dir=os.environ["LOSSY_ARTIFACT_PATH"])
 
-    saver = AtomicDirectory(output_directory=args.save_dir, is_master=args.is_master, keep_last=3)
-    timer.report("Validated checkpoint path")
+    output_directory = os.environ["CHECKPOINT_ARTIFACT_PATH"]
+    saver = AtomicDirectory(output_directory=output_directory, is_master=args.is_master)
 
+    # set the checkpoint_path if there is one to resume from
     checkpoint_path = None
-    local_resume_path = os.path.join(args.save_dir, saver.symlink_name)
-    if os.path.islink(local_resume_path):
-        checkpoint = os.path.join(os.readlink(local_resume_path), "checkpoint.pt")
-        if os.path.isfile(checkpoint):
-            checkpoint_path = checkpoint  
+    latest_symlink_file_path = os.path.join(output_directory, saver.symlink_name)
+    if os.path.islink(latest_symlink_file_path):
+        latest_checkpoint_path = os.readlink(latest_symlink_file_path)
+        checkpoint_path = os.path.join(latest_checkpoint_path, "checkpoint.pt")
     elif args.load_path:
+        # assume user has provided a full path to a checkpoint to resume
         if os.path.isfile(args.load_path):
             checkpoint_path = args.load_path
             
     if checkpoint_path:
-        if args.is_master:
-            timer.report(f"Loading checkpoint from {checkpoint_path}")
+        timer.report(f"Loading checkpoint from {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path, map_location=f"cuda:{args.device_id}")
         model.module.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
@@ -139,13 +141,9 @@ def main(args, timer):
 
             # Determine the current step
             batch = train_dataloader.sampler.progress // train_dataloader.batch_size
-            is_save_batch = (batch + 1) % args.save_steps == 0
             is_accum_batch = (batch + 1) % args.grad_accum == 0
             is_last_batch = (batch + 1) == train_batches_per_epoch
-
-            # Prepare checkpoint directory
-            if (is_save_batch or is_last_batch) and args.is_master:
-                checkpoint_directory = saver.prepare_checkpoint_directory()
+            is_save_batch = ((batch + 1) % args.save_steps == 0) or is_last_batch
 
             logits, targets, target_pad_mask = model(pgn_batch)
             
@@ -203,19 +201,23 @@ Uncertainty: [{rpt_uncertainty:,.3f}], Tokens: {rpt['gen_tokens']:,.0f}"""
                     writer.add_scalar("train/uncertainty", rpt_uncertainty, total_progress)
 
             # Saving
-            if (is_save_batch or is_last_batch) and args.is_master:
-                # Save checkpoint
-                atomic_torch_save(
-                    {
-                        "model": model.module.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                        "train_sampler": train_dataloader.sampler.state_dict(),
-                        "test_sampler": test_dataloader.sampler.state_dict(),
-                        "metrics": metrics,
-                        "timer": timer
-                    },
-                    os.path.join(checkpoint_directory, "checkpoint.pt"),
-                )
+            if is_save_batch:
+                checkpoint_directory = saver.prepare_checkpoint_directory()
+
+                if args.is_master:
+                    # Save checkpoint
+                    atomic_torch_save(
+                        {
+                            "model": model.module.state_dict(),
+                            "optimizer": optimizer.state_dict(),
+                            "train_sampler": train_dataloader.sampler.state_dict(),
+                            "test_sampler": test_dataloader.sampler.state_dict(),
+                            "metrics": metrics,
+                            "timer": timer
+                        },
+                        os.path.join(checkpoint_directory, "checkpoint.pt"),
+                    )
+
                 saver.atomic_symlink(checkpoint_directory)
 
         ## TEST     
@@ -229,12 +231,8 @@ Uncertainty: [{rpt_uncertainty:,.3f}], Tokens: {rpt['gen_tokens']:,.0f}"""
 
                 # Determine the current step
                 batch = test_dataloader.sampler.progress // test_dataloader.batch_size
-                is_save_batch = (batch + 1) % args.save_steps == 0
                 is_last_batch = (batch + 1) == test_batches_per_epoch
-
-                # Prepare checkpoint directory
-                if (is_save_batch or is_last_batch) and args.is_master:
-                    checkpoint_directory = saver.prepare_checkpoint_directory()
+                is_save_batch = ((batch + 1) % args.save_steps == 0) or is_last_batch
 
                 logits, targets, target_pad_mask = model(pgn_batch)
 
@@ -279,20 +277,30 @@ Uncertainty: [{rpt_uncertainty:,.3f}]"""
                         writer.add_scalar("test/uncertainty", rpt_uncertainty, epoch)
                 
                 # Saving
-                if (is_save_batch or is_last_batch) and args.is_master:
-                    timer.report(f"Saving after test batch [{batch} / {test_batches_per_epoch}]")
-                    # Save checkpoint
-                    atomic_torch_save(
-                        {
-                            "model": model.module.state_dict(),
-                            "optimizer": optimizer.state_dict(),
-                            "train_sampler": train_dataloader.sampler.state_dict(),
-                            "test_sampler": test_dataloader.sampler.state_dict(),
-                            "metrics": metrics,
-                            "timer": timer
-                        },
-                        os.path.join(checkpoint_directory, "checkpoint.pt"),
-                    )
+                if is_save_batch:
+                    # force save checkpoint if test performance improves
+                    if is_last_batch and (rpt_top1 > metrics["best_top1_accu"]):
+                        force_save = True
+                        metrics["best_top1_accu"] = rpt_top1
+                    else:
+                        force_save = False
+
+                    checkpoint_directory = saver.prepare_checkpoint_directory(force_save=force_save)
+
+                    if args.is_master:
+                        # Save checkpoint
+                        atomic_torch_save(
+                            {
+                                "model": model.module.state_dict(),
+                                "optimizer": optimizer.state_dict(),
+                                "train_sampler": train_dataloader.sampler.state_dict(),
+                                "test_sampler": test_dataloader.sampler.state_dict(),
+                                "metrics": metrics,
+                                "timer": timer
+                            },
+                            os.path.join(checkpoint_directory, "checkpoint.pt"),
+                        )
+                    
                     saver.atomic_symlink(checkpoint_directory)
 
         train_dataloader.sampler.reset_progress()

@@ -32,8 +32,6 @@ timer.report("Completed imports")
 def get_args_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-config", help="model config path", type=Path, default="/root/chess-hackathon/model_config.yaml")
-    parser.add_argument("--save-dir", help="save checkpoint path", type=Path, default=os.environ.get("CHECKPOINT_ARTIFACT_PATH"))
-    parser.add_argument("--tb-dir", help="save tensorboard logs", type=Path, default=os.environ.get("LOSSY_ARTIFACT_PATH"))
     parser.add_argument("--load-path", help="path to checkpoint.pt file to resume from", type=Path, default="/root/chess-hackathon/recover/checkpoint.pt")
     parser.add_argument("--bs", help="batch size", type=int, default=64)
     parser.add_argument("--lr", help="learning rate", type=float, default=0.001)
@@ -104,27 +102,31 @@ def main(args, timer):
 
     loss_fn = nn.MSELoss(reduction="sum")
     optimizer = Lamb(model.parameters(), lr=args.lr, weight_decay=args.wd)
-    metrics = {"train": MetricsTracker(), "test": MetricsTracker()}
+    metrics = {
+        "train": MetricsTracker(), 
+        "test": MetricsTracker(), 
+        "best_rank_corr": float("-inf")
+    }
 
     if args.is_master:
-        writer = SummaryWriter(log_dir=os.path.join(args.tb_dir, "tb"))
+        writer = SummaryWriter(log_dir=os.environ["LOSSY_ARTIFACT_PATH"])
 
-    saver = AtomicDirectory(output_directory=args.save_dir, is_master=args.is_master)
-    timer.report("Validated checkpoint path")
+    output_directory = os.environ["CHECKPOINT_ARTIFACT_PATH"]
+    saver = AtomicDirectory(output_directory=output_directory, is_master=args.is_master)
 
+    # set the checkpoint_path if there is one to resume from
     checkpoint_path = None
-    local_resume_path = os.path.join(args.save_dir, saver.symlink_name)
-    if os.path.islink(local_resume_path):
-        checkpoint = os.path.join(os.readlink(local_resume_path), "checkpoint.pt")
-        if os.path.isfile(checkpoint):
-            checkpoint_path = checkpoint
+    latest_symlink_file_path = os.path.join(output_directory, saver.symlink_name)
+    if os.path.islink(latest_symlink_file_path):
+        latest_checkpoint_path = os.readlink(latest_symlink_file_path)
+        checkpoint_path = os.path.join(latest_checkpoint_path, "checkpoint.pt")
     elif args.load_path:
+        # assume user has provided a full path to a checkpoint to resume
         if os.path.isfile(args.load_path):
             checkpoint_path = args.load_path
-            
+
     if checkpoint_path:
-        if args.is_master:
-            timer.report(f"Loading checkpoint from {checkpoint_path}")
+        timer.report(f"Loading checkpoint from {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path, map_location=f"cuda:{args.device_id}")
         model.module.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
@@ -154,13 +156,9 @@ def main(args, timer):
 
             # Determine the current step
             batch = train_dataloader.sampler.progress // train_dataloader.batch_size
-            is_save_batch = (batch + 1) % args.save_steps == 0
             is_accum_batch = (batch + 1) % args.grad_accum == 0
             is_last_batch = (batch + 1) == train_batches_per_epoch
-
-            # Prepare checkpoint directory
-            if (is_save_batch or is_last_batch) and args.is_master:
-                checkpoint_directory = saver.prepare_checkpoint_directory()
+            is_save_batch = ((batch + 1) % args.save_steps == 0) or is_last_batch
 
             scores = logish_transform(scores) # suspect this might help
             boards, scores = boards.to(args.device_id), scores.to(args.device_id)
@@ -208,20 +206,24 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                     writer.add_scalar("train/batch_rank_corr", rpt_rank_corr, total_progress)
 
             # Saving
-            if (is_save_batch or is_last_batch) and args.is_master:
-                # Save checkpoint
-                atomic_torch_save(
-                    {
-                        "model": model.module.state_dict(),
-                        "optimizer": optimizer.state_dict(),
-                        "train_sampler": train_dataloader.sampler.state_dict(),
-                        "test_sampler": test_dataloader.sampler.state_dict(),
-                        "metrics": metrics,
-                        "timer": timer
-                    },
-                    os.path.join(checkpoint_directory, "checkpoint.pt"),
-                )
-                saver.atomic_symlink(checkpoint_directory)
+            if is_save_batch:
+                checkpoint_directory = saver.prepare_checkpoint_directory()
+
+                if args.is_master:
+                    # Save checkpoint
+                    atomic_torch_save(
+                        {
+                            "model": model.module.state_dict(),
+                            "optimizer": optimizer.state_dict(),
+                            "train_sampler": train_dataloader.sampler.state_dict(),
+                            "test_sampler": test_dataloader.sampler.state_dict(),
+                            "metrics": metrics,
+                            "timer": timer
+                        },
+                        os.path.join(checkpoint_directory, "checkpoint.pt"),
+                    )
+                
+                saver.symlink_latest(checkpoint_directory)
 
         ## TESTING ##
         
@@ -234,12 +236,8 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
 
                 # Determine the current step
                 batch = test_dataloader.sampler.progress // test_dataloader.batch_size
-                is_save_batch = (batch + 1) % args.save_steps == 0
                 is_last_batch = (batch + 1) == test_batches_per_epoch
-
-                # Prepare checkpoint directory
-                if (is_save_batch or is_last_batch) and args.is_master:
-                    checkpoint_directory = saver.prepare_checkpoint_directory()
+                is_save_batch = ((batch + 1) % args.save_steps == 0) or is_last_batch
 
                 scores = logish_transform(scores) # suspect this might help
                 boards, scores = boards.to(args.device_id), scores.to(args.device_id)
@@ -272,20 +270,30 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                         writer.add_scalar("test/batch_rank_corr", rpt_rank_corr, epoch)
                 
                 # Saving
-                if (is_save_batch or is_last_batch) and args.is_master:
-                    timer.report(f"Saving after test batch [{batch} / {test_batches_per_epoch}]")
-                    # Save checkpoint
-                    atomic_torch_save(
-                        {
-                            "model": model.module.state_dict(),
-                            "optimizer": optimizer.state_dict(),
-                            "train_sampler": train_dataloader.sampler.state_dict(),
-                            "test_sampler": test_dataloader.sampler.state_dict(),
-                            "metrics": metrics,
-                            "timer": timer
-                        },
-                        os.path.join(checkpoint_directory, "checkpoint.pt"),
-                    )
+                if is_save_batch:
+                    # force save checkpoint if test performance improves
+                    if is_last_batch and (rpt_rank_corr > metrics["best_rank_corr"]):
+                        force_save = True
+                        metrics["best_rank_corr"] = rpt_rank_corr
+                    else:
+                        force_save = False
+
+                    checkpoint_directory = saver.prepare_checkpoint_directory(force_save=force_save)
+
+                    if args.is_master:
+                        # Save checkpoint
+                        atomic_torch_save(
+                            {
+                                "model": model.module.state_dict(),
+                                "optimizer": optimizer.state_dict(),
+                                "train_sampler": train_dataloader.sampler.state_dict(),
+                                "test_sampler": test_dataloader.sampler.state_dict(),
+                                "metrics": metrics,
+                                "timer": timer
+                            },
+                            os.path.join(checkpoint_directory, "checkpoint.pt"),
+                        )
+                    
                     saver.atomic_symlink(checkpoint_directory)
 
         train_dataloader.sampler.reset_progress()
