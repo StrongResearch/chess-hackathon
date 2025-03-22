@@ -294,7 +294,7 @@ Avg Loss [{avg_loss:,.3f}], Rank Corr.: [{rpt_rank_corr:,.3f}%], Examples: {rpt[
                             os.path.join(checkpoint_directory, "checkpoint.pt"),
                         )
                     
-                    saver.atomic_symlink(checkpoint_directory)
+                    saver.symlink_latest(checkpoint_directory)
 
         train_dataloader.sampler.reset_progress()
         test_dataloader.sampler.reset_progress()

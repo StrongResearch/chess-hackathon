@@ -218,7 +218,7 @@ Uncertainty: [{rpt_uncertainty:,.3f}], Tokens: {rpt['gen_tokens']:,.0f}"""
                         os.path.join(checkpoint_directory, "checkpoint.pt"),
                     )
 
-                saver.atomic_symlink(checkpoint_directory)
+                saver.symlink_latest(checkpoint_directory)
 
         ## TEST     
         
@@ -301,7 +301,7 @@ Uncertainty: [{rpt_uncertainty:,.3f}]"""
                             os.path.join(checkpoint_directory, "checkpoint.pt"),
                         )
                     
-                    saver.atomic_symlink(checkpoint_directory)
+                    saver.symlink_latest(checkpoint_directory)
 
         train_dataloader.sampler.reset_progress()
         test_dataloader.sampler.reset_progress()
